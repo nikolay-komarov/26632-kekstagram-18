@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Николай Комаров](https://up.htmlacademy.ru/javascript/18/user/26632).
-* Наставник: `Неизвестно`.
+* Наставник: [Алексей Беляев] (https://htmlacademy.ru/profile/id691043).
 
 ---
 

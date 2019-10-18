@@ -140,6 +140,7 @@
   var effectLevelDepth = imgUploadOverlay.querySelector('.effect-level__depth'); // линия глубины эффекта
   var effectLevelDepthStartValue; // стартовое значение глубины
   var effectLevelDepthValue; // значение глубины эффекта после изменения положения pin-а
+  var effectLevelValueElement = imgUploadOverlay.querySelector('.effect-level__value');
   var effectLevelDepthLineWidth; // длина линии перемещения ползунка
   var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
 
@@ -210,6 +211,7 @@
       } else {
         effectLevelDepthValue = 0;
       }
+      effectLevelValueElement.value = effectLevelDepthValue;
 
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);

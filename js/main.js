@@ -130,4 +130,127 @@
 
   var elements = createElements(); // создадим картинки и получим массив с карточками
   createBigPicture(elements[BIG_IMG_CARD_NUMBER]); // заполним и покажем большую картинку
+
+  // обеъекты и переменные для работы с загрузкой файла
+  var uploadFile = document.querySelector('#upload-file');
+  var imgUploadOverlay = document.querySelector('.img-upload__overlay');
+  var imgUploadOverlayButtonClose = imgUploadOverlay.querySelector('#upload-cancel');
+
+  var effectLevelPin = imgUploadOverlay.querySelector('.effect-level__pin'); // pin
+  var effectLevelDepth = imgUploadOverlay.querySelector('.effect-level__depth'); // линия глубины эффекта
+  var effectLevelDepthStartValue; // стартовое значение глубины
+  var effectLevelDepthValue; // значение глубины эффекта после изменения положения pin-а
+  var effectLevelDepthLineWidth; // длина линии перемещения ползунка
+  var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
+
+  var inputHashtags = imgUploadOverlay.querySelector('.text__hashtags');
+  var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
+
+  // после выбора файла (событие change) показываем форму редактирования изображения
+  uploadFile.addEventListener('change', function () {
+    // effectLevelDepthStartValue = 0.2;
+    // effectLevelDepthLineWidth = 453;
+
+    effectLevelDepthStartValue = effectLevelDepth.offsetWidth / effectLevelDepth.parentElement.offsetWidth; // расчет величины стартового значения эффекта - ?!:значения есть, то в результат пишет NaN
+    effectLevelDepthLineWidth = effectLevelDepth.parentElement.offsetWidth; // длина линии перемещения ползунка
+
+    imgUploadOverlay.classList.remove('hidden');
+  });
+
+  document.addEventListener('keydown', function (evt) {
+    if ((evt.keyCode === ESC_KEYCODE) && (document.activeElement !== inputHashtags)) {
+      imgUploadOverlay.classList.add('hidden');
+      uploadFile.value = '';
+    }
+  });
+
+  imgUploadOverlayButtonClose.addEventListener('click', function () {
+    imgUploadOverlay.classList.add('hidden');
+    uploadFile.value = '';
+  });
+
+  // перемещение ползунка на эффектах
+  effectLevelPin.addEventListener('mousedown', function (evt) {
+    evt.preventDefault();
+
+    var startCoords = {
+      x: evt.clientX,
+      y: evt.clientY
+    };
+
+    var onMouseMove = function (moveEvt) {
+      moveEvt.preventDefault();
+
+      var shiftX = startCoords.x - moveEvt.clientX;
+
+      startCoords = {
+        x: moveEvt.clientX,
+        y: moveEvt.clientY
+      };
+
+      var newPinXCood = effectLevelPin.offsetLeft - shiftX;
+
+      // ... и sустановим ограничение на перемещение pin-а
+      if (newPinXCood < 0) {
+        newPinXCood = 0;
+      } else if (newPinXCood > effectLevelDepthLineWidth) {
+        newPinXCood = effectLevelDepthLineWidth;
+      } else {
+        newPinXCood = effectLevelPin.offsetLeft - shiftX;
+      }
+
+      effectLevelPin.style.left = newPinXCood + 'px';
+      effectLevelDepth.style.width = newPinXCood + 'px';
+    };
+
+    var onMouseUp = function (upEvt) {
+      upEvt.preventDefault();
+
+      // расчет значения величины эффекта
+      if (effectLevelDepthLineWidth !== 0) {
+        effectLevelDepthValue = effectLevelDepth.offsetWidth / effectLevelDepthLineWidth;
+      } else {
+        effectLevelDepthValue = 0;
+      }
+
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  });
+
+  // события при переключении эффекта
+  effectList.addEventListener('change', function () {
+    effectLevelPin.style.left = effectLevelDepthStartValue * effectLevelDepthLineWidth + 'px';
+    effectLevelDepth.style.width = effectLevelDepthStartValue * effectLevelDepthLineWidth + 'px';
+    effectLevelDepthValue = effectLevelDepthStartValue;
+  });
+
+  // проверка хеш-тегов...
+  imgUploadOverlaySabmit.addEventListener('click', function () {
+    // если хеш-теги есть
+    if (inputHashtags.value !== '') {
+      var hashtagsArray = inputHashtags.value.split(' '); // разобьем строку
+
+      // приведем в одному регистру
+      hashtagsArray.map(function (currentElement) {
+        return currentElement.toLowerCase;
+      });
+
+      var isHashSimbol = false;
+      hashtagsArray.forEach(function (currentElement) {
+        isHashSimbol = isHashSimbol && (currentElement.slice(0, 1) === '#') ? false : true;
+      });
+
+      if (hashtagsArray.length > 5) {
+        inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
+      } else if (!isHashSimbol) {
+        inputHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
+      } else {
+        inputHashtags.setCustomValidity('');
+      }
+    }
+  });
 })();

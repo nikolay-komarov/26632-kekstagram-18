@@ -144,21 +144,19 @@
   var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
 
   var inputHashtags = imgUploadOverlay.querySelector('.text__hashtags');
+  var textDescription = imgUploadOverlay.querySelector('.text__description');
   var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
   // после выбора файла (событие change) показываем форму редактирования изображения
   uploadFile.addEventListener('change', function () {
-    // effectLevelDepthStartValue = 0.2;
-    // effectLevelDepthLineWidth = 453;
+    imgUploadOverlay.classList.remove('hidden');
 
     effectLevelDepthStartValue = effectLevelDepth.offsetWidth / effectLevelDepth.parentElement.offsetWidth; // расчет величины стартового значения эффекта - ?!:значения есть, то в результат пишет NaN
     effectLevelDepthLineWidth = effectLevelDepth.parentElement.offsetWidth; // длина линии перемещения ползунка
-
-    imgUploadOverlay.classList.remove('hidden');
   });
 
   document.addEventListener('keydown', function (evt) {
-    if ((evt.keyCode === ESC_KEYCODE) && (document.activeElement !== inputHashtags)) {
+    if ((evt.keyCode === ESC_KEYCODE) && (document.activeElement !== inputHashtags) && (document.activeElement !== textDescription)) {
       imgUploadOverlay.classList.add('hidden');
       uploadFile.value = '';
     }
@@ -229,25 +227,48 @@
   });
 
   // проверка хеш-тегов...
+  // проверка на дубли в массиве
+  var isCheckDoubles = function (chkArray) {
+    var countDbl = 0;
+    for (var i = 0; i < chkArray.length - 1; i++) {
+      for (var j = i + 1; j < chkArray.length; j++) {
+        if (chkArray[i] === chkArray[j]) {
+          countDbl++;
+        }
+      }
+    }
+    return countDbl > 0 ? true : false;
+  };
+
   imgUploadOverlaySabmit.addEventListener('click', function () {
     // если хеш-теги есть
     if (inputHashtags.value !== '') {
       var hashtagsArray = inputHashtags.value.split(' '); // разобьем строку
 
       // приведем в одному регистру
-      hashtagsArray.map(function (currentElement) {
-        return currentElement.toLowerCase;
+      hashtagsArray = hashtagsArray.map(function (currentElement) {
+        return currentElement.toLowerCase();
       });
 
-      var isHashSimbol = false;
+      var istHashSimbol = true;
+      var isOnlyHashSimbol = true;
+      var is20PlusSimbols = true;
       hashtagsArray.forEach(function (currentElement) {
-        isHashSimbol = isHashSimbol && (currentElement.slice(0, 1) === '#') ? false : true;
+        istHashSimbol = istHashSimbol && (currentElement.slice(0, 1) !== '#'); // хеш-тег без решетки?
+        isOnlyHashSimbol = isOnlyHashSimbol && ((currentElement.slice(0, 1) === '#') && (currentElement.length !== 1)); // только символ хеш-тега?
+        is20PlusSimbols = is20PlusSimbols && !(currentElement.length >= 20);
       });
 
       if (hashtagsArray.length > 5) {
         inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
-      } else if (!isHashSimbol) {
+      } else if (istHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
+      } else if (!isOnlyHashSimbol) {
+        inputHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');
+      } else if (!is20PlusSimbols) {
+        inputHashtags.setCustomValidity('Максимальная длина одного хэш-тега не может быть более 20 символов, включая решётку');
+      } else if (isCheckDoubles(hashtagsArray)) {
+        inputHashtags.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
       } else {
         inputHashtags.setCustomValidity('');
       }

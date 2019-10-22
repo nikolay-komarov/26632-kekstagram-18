@@ -146,7 +146,7 @@
 
   var inputHashtags = imgUploadOverlay.querySelector('.text__hashtags');
   var textDescription = imgUploadOverlay.querySelector('.text__description');
-  var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
+  // var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
   // после выбора файла (событие change) показываем форму редактирования изображения
   uploadFile.addEventListener('change', function () {
@@ -169,52 +169,57 @@
   });
 
   // перемещение ползунка на эффектах
+  var startCoords = {
+    x: 0,
+    y: 0
+  };
+
+  var onMouseMove = function (moveEvt) {
+    moveEvt.preventDefault();
+
+    var shiftX = startCoords.x - moveEvt.clientX;
+
+    startCoords = {
+      x: moveEvt.clientX,
+      y: moveEvt.clientY
+    };
+
+    var newPinXCood = effectLevelPin.offsetLeft - shiftX;
+
+    // ... и установим ограничение на перемещение pin-а
+    if (newPinXCood < 0) {
+      newPinXCood = 0;
+    } else if (newPinXCood > effectLevelDepthLineWidth) {
+      newPinXCood = effectLevelDepthLineWidth;
+    } else {
+      newPinXCood = effectLevelPin.offsetLeft - shiftX;
+    }
+
+    effectLevelPin.style.left = newPinXCood + 'px';
+    effectLevelDepth.style.width = newPinXCood + 'px';
+  };
+
+  var onMouseUp = function (upEvt) {
+    upEvt.preventDefault();
+
+    // расчет значения величины эффекта
+    if (effectLevelDepthLineWidth !== 0) {
+      effectLevelDepthValue = effectLevelDepth.offsetWidth / effectLevelDepthLineWidth;
+    } else {
+      effectLevelDepthValue = 0;
+    }
+    effectLevelValueElement.value = effectLevelDepthValue;
+
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  };
+
   effectLevelPin.addEventListener('mousedown', function (evt) {
     evt.preventDefault();
 
-    var startCoords = {
+    startCoords = {
       x: evt.clientX,
       y: evt.clientY
-    };
-
-    var onMouseMove = function (moveEvt) {
-      moveEvt.preventDefault();
-
-      var shiftX = startCoords.x - moveEvt.clientX;
-
-      startCoords = {
-        x: moveEvt.clientX,
-        y: moveEvt.clientY
-      };
-
-      var newPinXCood = effectLevelPin.offsetLeft - shiftX;
-
-      // ... и sустановим ограничение на перемещение pin-а
-      if (newPinXCood < 0) {
-        newPinXCood = 0;
-      } else if (newPinXCood > effectLevelDepthLineWidth) {
-        newPinXCood = effectLevelDepthLineWidth;
-      } else {
-        newPinXCood = effectLevelPin.offsetLeft - shiftX;
-      }
-
-      effectLevelPin.style.left = newPinXCood + 'px';
-      effectLevelDepth.style.width = newPinXCood + 'px';
-    };
-
-    var onMouseUp = function (upEvt) {
-      upEvt.preventDefault();
-
-      // расчет значения величины эффекта
-      if (effectLevelDepthLineWidth !== 0) {
-        effectLevelDepthValue = effectLevelDepth.offsetWidth / effectLevelDepthLineWidth;
-      } else {
-        effectLevelDepthValue = 0;
-      }
-      effectLevelValueElement.value = effectLevelDepthValue;
-
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
     };
 
     document.addEventListener('mousemove', onMouseMove);
@@ -239,10 +244,11 @@
         }
       }
     }
-    return countDbl > 0 ? true : false;
+    return countDbl > 0;
   };
 
-  imgUploadOverlaySabmit.addEventListener('click', function () {
+  // imgUploadOverlaySabmit.addEventListener('click', function () {
+  inputHashtags.addEventListener('input', function () {
     // если хеш-теги есть
     if (inputHashtags.value !== '') {
       var hashtagsArray = inputHashtags.value.split(' '); // разобьем строку
@@ -256,14 +262,15 @@
       var isOnlyHashSimbol = true;
       var is20PlusSimbols = true;
       hashtagsArray.forEach(function (currentElement) {
-        istHashSimbol = istHashSimbol && (currentElement.slice(0, 1) !== '#'); // хеш-тег без решетки?
+        istHashSimbol = istHashSimbol && (currentElement.slice(0, 1) === '#'); // хеш-тег без решетки?
         isOnlyHashSimbol = isOnlyHashSimbol && ((currentElement.slice(0, 1) === '#') && (currentElement.length !== 1)); // только символ хеш-тега?
         is20PlusSimbols = is20PlusSimbols && !(currentElement.length >= 20);
       });
 
+      // inputHashtags.setCustomValidity('');
       if (hashtagsArray.length > 5) {
         inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
-      } else if (istHashSimbol) {
+      } else if (!istHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
       } else if (!isOnlyHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');

@@ -146,7 +146,7 @@
 
   var inputHashtags = imgUploadOverlay.querySelector('.text__hashtags');
   var textDescription = imgUploadOverlay.querySelector('.text__description');
-  // var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
+  var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
   // после выбора файла (событие change) показываем форму редактирования изображения
   uploadFile.addEventListener('change', function () {
@@ -247,8 +247,11 @@
     return countDbl > 0;
   };
 
-  // imgUploadOverlaySabmit.addEventListener('click', function () {
   inputHashtags.addEventListener('input', function () {
+    inputHashtags.setCustomValidity('');
+  });
+
+  imgUploadOverlaySabmit.addEventListener('click', function () {
     // если хеш-теги есть
     if (inputHashtags.value !== '') {
       var hashtagsArray = inputHashtags.value.split(' '); // разобьем строку
@@ -264,10 +267,9 @@
       hashtagsArray.forEach(function (currentElement) {
         istHashSimbol = istHashSimbol && (currentElement.slice(0, 1) === '#'); // хеш-тег без решетки?
         isOnlyHashSimbol = isOnlyHashSimbol && ((currentElement.slice(0, 1) === '#') && (currentElement.length !== 1)); // только символ хеш-тега?
-        is20PlusSimbols = is20PlusSimbols && !(currentElement.length >= 20);
+        is20PlusSimbols = is20PlusSimbols && !(currentElement.length > 20);
       });
 
-      // inputHashtags.setCustomValidity('');
       if (hashtagsArray.length > 5) {
         inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
       } else if (!istHashSimbol) {

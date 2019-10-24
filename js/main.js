@@ -2,8 +2,9 @@
 
 (function () {
   var CARD_QUANTITY = 25; // если будет использоваться в других места, то переопределить
-  var BIG_IMG_CARD_NUMBER = 0; // номер карточки, которую выводим в big-picture (задание 3-3)
+  // var BIG_IMG_CARD_NUMBER = 0; // номер карточки, которую выводим в big-picture (задание 3-3)
   var ESC_KEYCODE = 27;
+  var ENTER_KEYCODE = 13;
 
   var commentsMap = [
     'Всё отлично!',
@@ -128,8 +129,32 @@
     });
   };
 
-  var elements = createElements(); // создадим картинки и получим массив с карточками
-  createBigPicture(elements[BIG_IMG_CARD_NUMBER]); // заполним и покажем большую картинку
+  var imgCards = createElements(); // создадим картинки и получим созданные селекторы и карточки
+
+  var cardList = document.querySelector('.pictures');
+  var cardInList = cardList.querySelectorAll('.picture'); // заберем созданные элементы карточек
+
+  // обработчик событий click по картинке и enter на выбранной картинке (номер карточки совпадаем с номером элемента в созданной разметке)
+  cardList.addEventListener('keydown', function (evt) {
+    var target = evt.target.closest('.picture');
+    if (evt.keyCode === ENTER_KEYCODE) {
+      for (var i = 0; i < cardInList.length; i++) {
+        if (target === cardInList[i]) {
+          createBigPicture(imgCards[i]);
+        }
+      }
+    }
+  });
+  cardList.addEventListener('click', function (evt) {
+    var target = evt.target;
+    if (target.className === 'picture__img') {
+      for (var i = 0; i < cardInList.length; i++) {
+        if (target.closest('.picture') === cardInList[i]) {
+          createBigPicture(imgCards[i]);
+        }
+      }
+    }
+  });
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -284,5 +309,15 @@
         inputHashtags.setCustomValidity('');
       }
     }
+
+    // проверка длины комментария
+    if (textDescription.value !== '') {
+      if (textDescription.value.length > 140) {
+        textDescription.setCustomValidity('Длина комментария не может составлять больше 140 символов');
+      } else {
+        textDescription.setCustomValidity('');
+      }
+    }
+
   });
 })();

@@ -2,8 +2,12 @@
 
 (function () {
   var CARD_QUANTITY = 25; // если будет использоваться в других места, то переопределить
-  var BIG_IMG_CARD_NUMBER = 0; // номер карточки, которую выводим в big-picture (задание 3-3)
+  // var BIG_IMG_CARD_NUMBER = 0; // номер карточки, которую выводим в big-picture (задание 3-3)
   var ESC_KEYCODE = 27;
+  var ENTER_KEYCODE = 13;
+  var HASH_LENGTH_MAX = 20;
+  var HASH_QUANTITY_MAX = 5;
+  var COMMENT_LENGTH_MAX = 140;
 
   var commentsMap = [
     'Всё отлично!',
@@ -86,6 +90,7 @@
     var bigPictureCommentsCount = card.comments.length;
 
     bigPicture.querySelector('.big-picture__img').querySelector('img').src = card.url;
+    bigPicture.querySelector('.big-picture__img').querySelector('img').alt = card.description;
     bigPicture.querySelector('.likes-count').textContent = card.likes;
     bigPicture.querySelector('.comments-count').textContent = bigPictureCommentsCount;
     bigPicture.querySelector('.social__caption').textContent = card.description;
@@ -128,8 +133,32 @@
     });
   };
 
-  var elements = createElements(); // создадим картинки и получим массив с карточками
-  createBigPicture(elements[BIG_IMG_CARD_NUMBER]); // заполним и покажем большую картинку
+  var imgCards = createElements(); // создадим картинки и получим созданные селекторы и карточки
+
+  var cardList = document.querySelector('.pictures');
+  var cardInList = cardList.querySelectorAll('.picture'); // заберем созданные элементы карточек
+
+  // обработчик событий click по картинке и enter на выбранной картинке (номер карточки совпадаем с номером элемента в созданной разметке)
+  cardList.addEventListener('keydown', function (evt) {
+    var target = evt.target.closest('.picture');
+    if (evt.keyCode === ENTER_KEYCODE) {
+      for (var i = 0; i < cardInList.length; i++) {
+        if (target === cardInList[i]) {
+          createBigPicture(imgCards[i]);
+        }
+      }
+    }
+  });
+  cardList.addEventListener('click', function (evt) {
+    var target = evt.target;
+    if (target.className === 'picture__img') {
+      for (var i = 0; i < cardInList.length; i++) {
+        if (target.closest('.picture') === cardInList[i]) {
+          createBigPicture(imgCards[i]);
+        }
+      }
+    }
+  });
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -252,31 +281,33 @@
   });
 
   imgUploadOverlaySabmit.addEventListener('click', function () {
+    inputHashtags.value = inputHashtags.value.trim(); // удалим пробелы с начала и с конца строки
+
     // если хеш-теги есть
     if (inputHashtags.value !== '') {
-      var hashtagsArray = inputHashtags.value.split(' '); // разобьем строку
+      var hashtagsArray = inputHashtags.value.split(/ +/g); // разобьем строку
 
       // приведем в одному регистру
       hashtagsArray = hashtagsArray.map(function (currentElement) {
         return currentElement.toLowerCase();
       });
 
-      var istHashSimbol = true;
+      var isHashSimbol = true;
       var isOnlyHashSimbol = true;
-      var is20PlusSimbols = true;
+      var isOverMaxSimbols = true;
       hashtagsArray.forEach(function (currentElement) {
-        istHashSimbol = istHashSimbol && (currentElement.slice(0, 1) === '#'); // хеш-тег без решетки?
-        isOnlyHashSimbol = isOnlyHashSimbol && ((currentElement.slice(0, 1) === '#') && (currentElement.length !== 1)); // только символ хеш-тега?
-        is20PlusSimbols = is20PlusSimbols && !(currentElement.length > 20);
+        isHashSimbol = isHashSimbol && (currentElement.slice(0, 1) === '#'); // хеш-тег без решетки?
+        isOnlyHashSimbol = isOnlyHashSimbol && currentElement.slice(0, 1) === '#' && currentElement.length !== 1; // только символ хеш-тега?
+        isOverMaxSimbols = isOverMaxSimbols && !(currentElement.length > HASH_LENGTH_MAX);
       });
 
-      if (hashtagsArray.length > 5) {
+      if (hashtagsArray.length > HASH_QUANTITY_MAX) {
         inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
-      } else if (!istHashSimbol) {
+      } else if (!isHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
       } else if (!isOnlyHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');
-      } else if (!is20PlusSimbols) {
+      } else if (!isOverMaxSimbols) {
         inputHashtags.setCustomValidity('Максимальная длина одного хэш-тега не может быть более 20 символов, включая решётку');
       } else if (isCheckDoubles(hashtagsArray)) {
         inputHashtags.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
@@ -284,5 +315,15 @@
         inputHashtags.setCustomValidity('');
       }
     }
+
+    // проверка длины комментария
+    if (textDescription.value !== '') {
+      if (textDescription.value.length > COMMENT_LENGTH_MAX) {
+        textDescription.setCustomValidity('Длина комментария не может составлять больше 140 символов');
+      } else {
+        textDescription.setCustomValidity('');
+      }
+    }
+
   });
 })();

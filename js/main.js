@@ -292,18 +292,18 @@
         return currentElement.toLowerCase();
       });
 
-      var istHashSimbol = true;
+      var isHashSimbol = true;
       var isOnlyHashSimbol = true;
       var isOverMaxSimbols = true;
       hashtagsArray.forEach(function (currentElement) {
-        istHashSimbol = currentElement.slice(0, 1) === '#'; // хеш-тег без решетки?
-        isOnlyHashSimbol = currentElement.slice(0, 1) === '#' && currentElement.length !== 1; // только символ хеш-тега?
-        isOverMaxSimbols = !(currentElement.length > HASH_LENGTH_MAX);
+        isHashSimbol = isHashSimbol && (currentElement.slice(0, 1) === '#'); // хеш-тег без решетки?
+        isOnlyHashSimbol = isOnlyHashSimbol && currentElement.slice(0, 1) === '#' && currentElement.length !== 1; // только символ хеш-тега?
+        isOverMaxSimbols = isOverMaxSimbols && !(currentElement.length > HASH_LENGTH_MAX);
       });
 
       if (hashtagsArray.length > HASH_QUANTITY_MAX) {
         inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
-      } else if (!istHashSimbol) {
+      } else if (!isHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
       } else if (!isOnlyHashSimbol) {
         inputHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');

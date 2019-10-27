@@ -2,7 +2,6 @@
 
 (function () {
   var CARD_QUANTITY = 25; // если будет использоваться в других места, то переопределить
-  // var BIG_IMG_CARD_NUMBER = 0; // номер карточки, которую выводим в big-picture (задание 3-3)
   var ESC_KEYCODE = 27;
   var ENTER_KEYCODE = 13;
   var HASH_LENGTH_MAX = 20;
@@ -324,6 +323,5 @@
         textDescription.setCustomValidity('');
       }
     }
-
   });
 })();

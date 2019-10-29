@@ -21,30 +21,31 @@
     'Фродо'
   ];
 
-  window.data = {
-    generateMocks: function () {
-      var mocks = [];
-      var mockComments = [];
+  var generateMocks = function () {
+    var mocks = [];
+    var mockComments = [];
 
-      for (var i = 0; i < CARD_QUANTITY; i++) {
-        mockComments = [];
-        for (var j = 0; j < window.util.getRandomInt(1, 2); j++) {
-          mockComments[j] = {
-            avatar: 'img/avatar-' + window.util.getRandomInt(1, 6) + '.svg',
-            message: commentsMap[window.util.getRandomInt(0, 5)],
-            name: namesMap[window.util.getRandomInt(0, 5)]
-          };
-        }
-
-        mocks[i] = {
-          url: 'photos/' + (i + 1) + '.jpg',
-          description: 'photos/' + (i + 1) + '.jpg',
-          likes: window.util.getRandomInt(15, 200),
-          comments: mockComments
+    for (var i = 0; i < CARD_QUANTITY; i++) {
+      mockComments = [];
+      for (var j = 0; j < window.util.getRandomInt(1, 2); j++) {
+        mockComments[j] = {
+          avatar: 'img/avatar-' + window.util.getRandomInt(1, 6) + '.svg',
+          message: commentsMap[window.util.getRandomInt(0, 5)],
+          name: namesMap[window.util.getRandomInt(0, 5)]
         };
       }
-
-      return mocks;
+      mocks[i] = {
+        url: 'photos/' + (i + 1) + '.jpg',
+        description: 'photos/' + (i + 1) + '.jpg',
+        likes: window.util.getRandomInt(15, 200),
+        comments: mockComments
+      };
     }
+
+    return mocks;
+  };
+
+  window.data = {
+    generateMocks: generateMocks
   };
 })();

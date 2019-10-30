@@ -15,10 +15,10 @@
   var effectLevelDepthStartValue; // стартовое значение глубины
   var effectLevelDepthValue; // значение глубины эффекта после изменения положения pin-а
   var effectLevelValueElement = imgUploadOverlay.querySelector('.effect-level__value');
-  var effectLevelDepthLineWidth; // длина линии перемещения ползунка
+  var effectLevelDepthLineLength; // длина линии перемещения ползунка
   var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
 
-  var inputHashtags = imgUploadOverlay.querySelector('.text__hashtags');
+  var textHashtags = imgUploadOverlay.querySelector('.text__hashtags');
   var textDescription = imgUploadOverlay.querySelector('.text__description');
   var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
@@ -27,12 +27,12 @@
     imgUploadOverlay.classList.remove('hidden');
 
     effectLevelDepthStartValue = effectLevelDepth.offsetWidth / effectLevelDepth.parentElement.offsetWidth; // расчет величины стартового значения эффекта - ?!:значения есть, то в результат пишет NaN
-    effectLevelDepthLineWidth = effectLevelDepth.parentElement.offsetWidth; // длина линии перемещения ползунка
+    effectLevelDepthLineLength = effectLevelDepth.parentElement.offsetWidth; // длина линии перемещения ползунка
   });
 
   // закрытие формы редактирования изображения
   document.addEventListener('keydown', function (evt) {
-    if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== inputHashtags) && (document.activeElement !== textDescription)) {
+    if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
       imgUploadOverlay.classList.add('hidden');
       uploadFile.value = '';
     }
@@ -63,8 +63,8 @@
     // ... и установим ограничение на перемещение pin-а
     if (newPinXCood < 0) {
       newPinXCood = 0;
-    } else if (newPinXCood > effectLevelDepthLineWidth) {
-      newPinXCood = effectLevelDepthLineWidth;
+    } else if (newPinXCood > effectLevelDepthLineLength) {
+      newPinXCood = effectLevelDepthLineLength;
     } else {
       newPinXCood = effectLevelPin.offsetLeft - shiftX;
     }
@@ -77,8 +77,8 @@
     upEvt.preventDefault();
 
     // расчет значения величины эффекта
-    if (effectLevelDepthLineWidth !== 0) {
-      effectLevelDepthValue = effectLevelDepth.offsetWidth / effectLevelDepthLineWidth;
+    if (effectLevelDepthLineLength !== 0) {
+      effectLevelDepthValue = effectLevelDepth.offsetWidth / effectLevelDepthLineLength;
     } else {
       effectLevelDepthValue = 0;
     }
@@ -102,18 +102,18 @@
 
   // события при переключении эффекта
   effectList.addEventListener('change', function () {
-    effectLevelPin.style.left = effectLevelDepthStartValue * effectLevelDepthLineWidth + 'px';
-    effectLevelDepth.style.width = effectLevelDepthStartValue * effectLevelDepthLineWidth + 'px';
+    effectLevelPin.style.left = effectLevelDepthStartValue * effectLevelDepthLineLength + 'px';
+    effectLevelDepth.style.width = effectLevelDepthStartValue * effectLevelDepthLineLength + 'px';
     effectLevelDepthValue = effectLevelDepthStartValue;
   });
 
   // проверка хеш-тегов...
   // проверка на дубли в массиве
-  var hasDoubles = function (chkArray) {
+  var hasDoubles = function (checkedArray) {
     var countDbl = 0;
-    for (var i = 0; i < chkArray.length - 1; i++) {
-      for (var j = i + 1; j < chkArray.length; j++) {
-        if (chkArray[i] === chkArray[j]) {
+    for (var i = 0; i < checkedArray.length - 1; i++) {
+      for (var j = i + 1; j < checkedArray.length; j++) {
+        if (checkedArray[i] === checkedArray[j]) {
           countDbl++;
         }
       }
@@ -121,16 +121,16 @@
     return countDbl > 0;
   };
 
-  inputHashtags.addEventListener('input', function () {
-    inputHashtags.setCustomValidity('');
+  textHashtags.addEventListener('input', function () {
+    textHashtags.setCustomValidity('');
   });
 
   imgUploadOverlaySabmit.addEventListener('click', function () {
-    inputHashtags.value = inputHashtags.value.trim(); // удалим пробелы с начала и с конца строки
+    textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть
-    if (inputHashtags.value !== '') {
-      var hashtagsArray = inputHashtags.value.split(/ +/g); // разобьем строку
+    if (textHashtags.value !== '') {
+      var hashtagsArray = textHashtags.value.split(/ +/g); // разобьем строку
 
       // приведем в одному регистру
       hashtagsArray = hashtagsArray.map(function (currentElement) {
@@ -147,17 +147,17 @@
       });
 
       if (hashtagsArray.length > HASH_QUANTITY_MAX) {
-        inputHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
+        textHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
       } else if (!isHashSimbol) {
-        inputHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
+        textHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
       } else if (!isOnlyHashSimbol) {
-        inputHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');
+        textHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');
       } else if (!isOverMaxSimbols) {
-        inputHashtags.setCustomValidity('Максимальная длина одного хэш-тега не может быть более 20 символов, включая решётку');
+        textHashtags.setCustomValidity('Максимальная длина одного хэш-тега не может быть более 20 символов, включая решётку');
       } else if (hasDoubles(hashtagsArray)) {
-        inputHashtags.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
+        textHashtags.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
       } else {
-        inputHashtags.setCustomValidity('');
+        textHashtags.setCustomValidity('');
       }
     }
 

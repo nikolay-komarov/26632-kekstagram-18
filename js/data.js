@@ -2,6 +2,12 @@
 
 (function () {
   var CARD_QUANTITY = 25; // кол-во карточек в гелерее
+  var AVATAR_IMG_NUMBER_MIN = 1;
+  var AVATAR_IMG_NUMBER_MAX = 6;
+  var COMMENTS_QUANTITY_MIN = 1;
+  var COMMENTS_QUANTITY_MAX = 2;
+  var LIKES_QAUNTITY_MIN = 15;
+  var LIKES_QAUNTITY_MAX = 200;
 
   var commentsMap = [
     'Всё отлично!',
@@ -27,17 +33,17 @@
 
     for (var i = 0; i < CARD_QUANTITY; i++) {
       mockComments = [];
-      for (var j = 0; j < window.util.getRandomInt(1, 2); j++) {
+      for (var j = 0; j < window.util.getRandomInt(COMMENTS_QUANTITY_MIN, COMMENTS_QUANTITY_MAX); j++) {
         mockComments[j] = {
-          avatar: 'img/avatar-' + window.util.getRandomInt(1, 6) + '.svg',
-          message: commentsMap[window.util.getRandomInt(0, 5)],
-          name: namesMap[window.util.getRandomInt(0, 5)]
+          avatar: 'img/avatar-' + window.util.getRandomInt(AVATAR_IMG_NUMBER_MIN, AVATAR_IMG_NUMBER_MAX) + '.svg',
+          message: commentsMap[window.util.getRandomInt(0, commentsMap.length)],
+          name: namesMap[window.util.getRandomInt(0, namesMap.length)]
         };
       }
       mocks[i] = {
         url: 'photos/' + (i + 1) + '.jpg',
         description: 'photos/' + (i + 1) + '.jpg',
-        likes: window.util.getRandomInt(15, 200),
+        likes: window.util.getRandomInt(LIKES_QAUNTITY_MIN, LIKES_QAUNTITY_MAX),
         comments: mockComments
       };
     }

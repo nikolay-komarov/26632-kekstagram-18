@@ -3,7 +3,7 @@
 (function () {
   var createElements = function () {
     var cards = window.data.generateMocks();
-    var elementsLits = document.querySelector('.pictures');
+    var elementsList = document.querySelector('.pictures');
     var fragment = document.createDocumentFragment();
     var template = document.querySelector('#picture').content.querySelector('a');
 
@@ -11,7 +11,7 @@
       fragment.appendChild(window.picture.createElement(template, cards[i]));
     }
 
-    elementsLits.appendChild(fragment);
+    elementsList.appendChild(fragment);
 
     return cards; // вернем вернем массив созданных карточек
   };

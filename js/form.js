@@ -13,7 +13,7 @@
   var imgUploadOverlayButtonClose = imgUploadOverlay.querySelector('#upload-cancel');
 
   // Перечисление, объекты и переменные для работы с эффектами
-  var EFFECTS = {
+  var Effects = {
     'none': {
       effectName: 'none',
       effectClassName: 'none'
@@ -153,11 +153,11 @@
       effectLevelLineWidth = newPinXCood;
 
       // расчет глубины эффекта и применение эффекта
-      for (var effect in EFFECTS) {
-        if (getCurrentEffectName() === EFFECTS[effect].effectName) {
-          effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (EFFECTS[effect].effectValueMax - EFFECTS[effect].effectValueMin);
-          imgUploadPreview.style.filter = EFFECTS[effect].effectFilterName + '(' + EFFECTS[effect].effectValueMin + effectLevelDepthValue + EFFECTS[effect].effectUnit + ')';
-          imgUploadPreview.style.WebkitFilter = EFFECTS[effect].effectFilterName + '(' + (EFFECTS[effect].effectValueMin + effectLevelDepthValue) + EFFECTS[effect].effectUnit + ')';
+      for (var effect in Effects) {
+        if (getCurrentEffectName() === Effects[effect].effectName) {
+          effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (Effects[effect].effectValueMax - Effects[effect].effectValueMin);
+          imgUploadPreview.style.filter = Effects[effect].effectFilterName + '(' + Effects[effect].effectValueMin + effectLevelDepthValue + Effects[effect].effectUnit + ')';
+          imgUploadPreview.style.WebkitFilter = Effects[effect].effectFilterName + '(' + (Effects[effect].effectValueMin + effectLevelDepthValue) + Effects[effect].effectUnit + ')';
         }
       }
     }
@@ -204,21 +204,21 @@
     // применим текущий эффект к картинке
     var target = evt.target.closest('.effects__radio');
     if (target.value !== 'none') {
-      for (var effect in EFFECTS) {
-        if (target.value === EFFECTS[effect].effectName) {
-          effectLevelDepthValue = EFFECT_LEVEL_START * (EFFECTS[effect].effectValueMax - EFFECTS[effect].effectValueMin);
+      for (var effect in Effects) {
+        if (target.value === Effects[effect].effectName) {
+          effectLevelDepthValue = EFFECT_LEVEL_START * (Effects[effect].effectValueMax - Effects[effect].effectValueMin);
           currentEffect = {
-            effectName: EFFECTS[effect].effectName,
-            effectClassName: EFFECTS[effect].effectClassName,
-            effectFilterStr: EFFECTS[effect].effectFilterName + '(' + (EFFECTS[effect].effectValueMin + effectLevelDepthValue) + EFFECTS[effect].effectUnit + ')',
+            effectName: Effects[effect].effectName,
+            effectClassName: Effects[effect].effectClassName,
+            effectFilterStr: Effects[effect].effectFilterName + '(' + (Effects[effect].effectValueMin + effectLevelDepthValue) + Effects[effect].effectUnit + ')',
           };
         }
       }
       effectLevelSlider.classList.remove('hidden');
     } else {
       currentEffect = {
-        effectName: EFFECTS['none'].effectName,
-        effectClassName: EFFECTS['none'].effectClassName,
+        effectName: Effects['none'].effectName,
+        effectClassName: Effects['none'].effectClassName,
         effectFilterStr: ''
       };
       effectLevelSlider.classList.add('hidden');

@@ -13,12 +13,12 @@
   var imgUploadOverlayButtonClose = imgUploadOverlay.querySelector('#upload-cancel');
 
   // Перечисление, объекты и переменные для работы с эффектами
-  var EffectsMap = {
-    'NONE': {
+  var EFFECTS = {
+    'none': {
       effectName: 'none',
       effectClassName: 'none'
     },
-    'CHROME': {
+    'chrome': {
       effectName: 'chrome',
       effectClassName: 'effects__preview--chrome',
       effectFilterName: 'grayscale',
@@ -26,7 +26,7 @@
       effectValueMax: 1,
       effectUnit: '',
     },
-    'SEPIA': {
+    'sepia': {
       effectName: 'sepia',
       effectClassName: 'effects__preview--sepia',
       effectFilterName: 'sepia',
@@ -34,7 +34,7 @@
       effectValueMax: 1,
       effectUnit: ''
     },
-    'MARVIN': {
+    'marvin': {
       effectName: 'marvin',
       effectClassName: 'effects__preview--marvin',
       effectFilterName: 'invert',
@@ -42,7 +42,7 @@
       effectValueMax: 100,
       effectUnit: '%'
     },
-    'PHOBOS': {
+    'phobos': {
       effectName: 'phobos',
       effectClassName: 'effects__preview--phobos',
       effectFilterName: 'blur',
@@ -50,7 +50,7 @@
       effectValueMax: 3,
       effectUnit: 'px'
     },
-    'HEAT': {
+    'heat': {
       effectName: 'heat',
       effectClassName: 'effects__preview--heat',
       effectFilterName: 'brightness',
@@ -153,11 +153,11 @@
       effectLevelLineWidth = newPinXCood;
 
       // расчет глубины эффекта и применение эффекта
-      for (var effect in EffectsMap) {
-        if (getCurrentEffectName() === EffectsMap[effect].effectName) {
-          effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (EffectsMap[effect].effectValueMax - EffectsMap[effect].effectValueMin);
-          imgUploadPreview.style.filter = EffectsMap[effect].effectFilterName + '(' + EffectsMap[effect].effectValueMin + effectLevelDepthValue + EffectsMap[effect].effectUnit + ')';
-          imgUploadPreview.style.WebkitFilter = EffectsMap[effect].effectFilterName + '(' + (EffectsMap[effect].effectValueMin + effectLevelDepthValue) + EffectsMap[effect].effectUnit + ')';
+      for (var effect in EFFECTS) {
+        if (getCurrentEffectName() === EFFECTS[effect].effectName) {
+          effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (EFFECTS[effect].effectValueMax - EFFECTS[effect].effectValueMin);
+          imgUploadPreview.style.filter = EFFECTS[effect].effectFilterName + '(' + EFFECTS[effect].effectValueMin + effectLevelDepthValue + EFFECTS[effect].effectUnit + ')';
+          imgUploadPreview.style.WebkitFilter = EFFECTS[effect].effectFilterName + '(' + (EFFECTS[effect].effectValueMin + effectLevelDepthValue) + EFFECTS[effect].effectUnit + ')';
         }
       }
     }
@@ -204,21 +204,21 @@
     // применим текущий эффект к картинке
     var target = evt.target.closest('.effects__radio');
     if (target.value !== 'none') {
-      for (var effect in EffectsMap) {
-        if (target.value === EffectsMap[effect].effectName) {
-          effectLevelDepthValue = EFFECT_LEVEL_START * (EffectsMap[effect].effectValueMax - EffectsMap[effect].effectValueMin);
+      for (var effect in EFFECTS) {
+        if (target.value === EFFECTS[effect].effectName) {
+          effectLevelDepthValue = EFFECT_LEVEL_START * (EFFECTS[effect].effectValueMax - EFFECTS[effect].effectValueMin);
           currentEffect = {
-            effectName: EffectsMap[effect].effectName,
-            effectClassName: EffectsMap[effect].effectClassName,
-            effectFilterStr: EffectsMap[effect].effectFilterName + '(' + (EffectsMap[effect].effectValueMin + effectLevelDepthValue) + EffectsMap[effect].effectUnit + ')',
+            effectName: EFFECTS[effect].effectName,
+            effectClassName: EFFECTS[effect].effectClassName,
+            effectFilterStr: EFFECTS[effect].effectFilterName + '(' + (EFFECTS[effect].effectValueMin + effectLevelDepthValue) + EFFECTS[effect].effectUnit + ')',
           };
         }
       }
       effectLevelSlider.classList.remove('hidden');
     } else {
       currentEffect = {
-        effectName: EffectsMap['NONE'].effectName,
-        effectClassName: EffectsMap['NONE'].effectClassName,
+        effectName: EFFECTS['none'].effectName,
+        effectClassName: EFFECTS['none'].effectClassName,
         effectFilterStr: ''
       };
       effectLevelSlider.classList.add('hidden');

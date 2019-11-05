@@ -4,19 +4,95 @@
   var HASH_LENGTH_MAX = 20;
   var HASH_QUANTITY_MAX = 5;
   var COMMENT_LENGTH_MAX = 140;
+  var EFFECT_LEVEL_START = 1;
+
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
   var imgUploadOverlay = document.querySelector('.img-upload__overlay');
   var imgUploadOverlayButtonClose = imgUploadOverlay.querySelector('#upload-cancel');
 
-  var effectLevelPin = imgUploadOverlay.querySelector('.effect-level__pin'); // pin
-  var effectLevelDepth = imgUploadOverlay.querySelector('.effect-level__depth'); // линия глубины эффекта
-  var effectLevelDepthStartValue; // стартовое значение глубины
-  var effectLevelDepthValue; // значение глубины эффекта после изменения положения pin-а
-  var effectLevelValueElement = imgUploadOverlay.querySelector('.effect-level__value');
-  var effectLevelDepthLineLength; // длина линии перемещения ползунка
+  // Перечисление, объекты и переменные для работы с эффектами
+  var Effects = {
+    'none': {
+      effectName: 'none',
+      effectClassName: 'none'
+    },
+    'chrome': {
+      effectName: 'chrome',
+      effectClassName: 'effects__preview--chrome',
+      effectFilterName: 'grayscale',
+      effectValueMin: 0,
+      effectValueMax: 1,
+      effectUnit: '',
+    },
+    'sepia': {
+      effectName: 'sepia',
+      effectClassName: 'effects__preview--sepia',
+      effectFilterName: 'sepia',
+      effectValueMin: 0,
+      effectValueMax: 1,
+      effectUnit: ''
+    },
+    'marvin': {
+      effectName: 'marvin',
+      effectClassName: 'effects__preview--marvin',
+      effectFilterName: 'invert',
+      effectValueMin: 0,
+      effectValueMax: 100,
+      effectUnit: '%'
+    },
+    'phobos': {
+      effectName: 'phobos',
+      effectClassName: 'effects__preview--phobos',
+      effectFilterName: 'blur',
+      effectValueMin: 0,
+      effectValueMax: 3,
+      effectUnit: 'px'
+    },
+    'heat': {
+      effectName: 'heat',
+      effectClassName: 'effects__preview--heat',
+      effectFilterName: 'brightness',
+      effectValueMin: 1,
+      effectValueMax: 3,
+      effectUnit: ''
+    }
+  };
+
+  var imgUploadPreview = imgUploadOverlay.querySelector('.img-upload__preview').querySelector('img');
+
+  var effectLevelSlider = imgUploadOverlay.querySelector('.img-upload__effect-level'); // слайдер
+  var effectLevelSliderLine = effectLevelSlider.querySelector('.effect-level__line'); // линия перемещания ползунка
+  var effectLevelPin = effectLevelSlider.querySelector('.effect-level__pin'); // pin
+  var effectLevelLine = effectLevelSlider.querySelector('.effect-level__depth'); // линия глубины эффекта
+
+  var effectLevelSliderLineWidth; // длина линии перемещения ползунка
+  var effectLevelLineWidth; // длина линии эффекта
+
+  var effectLevelValue; // значение величины эффекта после изменения положения pin-а
+  var effectLevelDepthValue; // значение глубины эффекта
+
+  var effectLevelValueElement = imgUploadOverlay.querySelector('.effect-level__value'); // поле для записи значения эффекта
+
+  var getCurrentEffectName = function () {
+    var checkedElement;
+    for (var i = 0; i < effectsRadio.length; i++) {
+      if (effectsRadio[i].checked) {
+        checkedElement = effectsRadio[i];
+      }
+    }
+    return checkedElement.value;
+  };
+
   var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
+  var effectsRadio = effectList.querySelectorAll('.effects__radio'); // список радио-кнопок для эффектов
+  // начальное значение для наименования текущего эффекта
+  var currentEffect = {
+    effectName: 'none',
+    effectClassName: 'none',
+    effectFilterStr: ''
+  };
 
   var textHashtags = imgUploadOverlay.querySelector('.text__hashtags');
   var textDescription = imgUploadOverlay.querySelector('.text__description');
@@ -26,8 +102,16 @@
   uploadFile.addEventListener('change', function () {
     imgUploadOverlay.classList.remove('hidden');
 
-    effectLevelDepthStartValue = effectLevelDepth.offsetWidth / effectLevelDepth.parentElement.offsetWidth; // расчет величины стартового значения эффекта - ?!:значения есть, то в результат пишет NaN
-    effectLevelDepthLineLength = effectLevelDepth.parentElement.offsetWidth; // длина линии перемещения ползунка
+    effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
+    effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
+
+    // выберем первый элемент (без эффекта) списка эффектов
+    effectsRadio[0].checked = true;
+    currentEffect = {
+      effectName: 'none',
+      effectClassName: 'none'
+    };
+    effectLevelSlider.classList.add('hidden');
   });
 
   // закрытие формы редактирования изображения
@@ -43,68 +127,107 @@
   });
 
   // перемещение ползунка на эффектах
-  var startCoords = {
-    x: 0,
-    y: 0
-  };
+  var startXCoord = 0;
+  var isPinMove = false;
 
   var onMouseMove = function (moveEvt) {
     moveEvt.preventDefault();
 
-    var shiftX = startCoords.x - moveEvt.clientX;
+    if (isPinMove === true) {
+      var shiftX = startXCoord - moveEvt.clientX;
+      startXCoord = moveEvt.clientX;
 
-    startCoords = {
-      x: moveEvt.clientX,
-      y: moveEvt.clientY
-    };
+      var newPinXCood = effectLevelPin.offsetLeft - shiftX;
 
-    var newPinXCood = effectLevelPin.offsetLeft - shiftX;
+      // установим ограничение на перемещение pin-а
+      if (newPinXCood < 0) {
+        newPinXCood = 0;
+      } else if (newPinXCood > effectLevelSliderLineWidth) {
+        newPinXCood = effectLevelSliderLineWidth;
+      } else {
+        newPinXCood = effectLevelPin.offsetLeft - shiftX;
+      }
 
-    // ... и установим ограничение на перемещение pin-а
-    if (newPinXCood < 0) {
-      newPinXCood = 0;
-    } else if (newPinXCood > effectLevelDepthLineLength) {
-      newPinXCood = effectLevelDepthLineLength;
-    } else {
-      newPinXCood = effectLevelPin.offsetLeft - shiftX;
+      effectLevelPin.style.left = newPinXCood + 'px';
+      effectLevelLine.style.width = newPinXCood + 'px';
+      effectLevelLineWidth = newPinXCood;
+
+      // расчет глубины эффекта и применение эффекта
+      for (var effect in Effects) {
+        if (getCurrentEffectName() === Effects[effect].effectName) {
+          effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (Effects[effect].effectValueMax - Effects[effect].effectValueMin);
+          imgUploadPreview.style.filter = Effects[effect].effectFilterName + '(' + Effects[effect].effectValueMin + effectLevelDepthValue + Effects[effect].effectUnit + ')';
+          imgUploadPreview.style.WebkitFilter = Effects[effect].effectFilterName + '(' + (Effects[effect].effectValueMin + effectLevelDepthValue) + Effects[effect].effectUnit + ')';
+        }
+      }
     }
-
-    effectLevelPin.style.left = newPinXCood + 'px';
-    effectLevelDepth.style.width = newPinXCood + 'px';
   };
 
   var onMouseUp = function (upEvt) {
     upEvt.preventDefault();
 
-    // расчет значения величины эффекта
-    if (effectLevelDepthLineLength !== 0) {
-      effectLevelDepthValue = effectLevelDepth.offsetWidth / effectLevelDepthLineLength;
+    // расчет значения глубины эффекта
+    if (effectLevelSliderLineWidth > 0) {
+      effectLevelValue = effectLevelLineWidth / effectLevelSliderLineWidth * 100;
     } else {
-      effectLevelDepthValue = 0;
+      effectLevelValue = 0;
     }
-    effectLevelValueElement.value = effectLevelDepthValue;
+    effectLevelValueElement.setAttribute('value', effectLevelValue);
 
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
+    isPinMove = false;
   };
 
   effectLevelPin.addEventListener('mousedown', function (evt) {
     evt.preventDefault();
 
-    startCoords = {
-      x: evt.clientX,
-      y: evt.clientY
-    };
+    startXCoord = evt.clientX;
+    isPinMove = true;
 
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
   });
 
   // события при переключении эффекта
-  effectList.addEventListener('change', function () {
-    effectLevelPin.style.left = effectLevelDepthStartValue * effectLevelDepthLineLength + 'px';
-    effectLevelDepth.style.width = effectLevelDepthStartValue * effectLevelDepthLineLength + 'px';
-    effectLevelDepthValue = effectLevelDepthStartValue;
+  effectList.addEventListener('change', function (evt) {
+    // переставим pin в начальное положение и скинем значения глубины и величины эффекта до стартовых
+    effectLevelPin.style.left = EFFECT_LEVEL_START * effectLevelSliderLineWidth + 'px';
+    effectLevelLine.style.width = EFFECT_LEVEL_START * effectLevelSliderLineWidth + 'px';
+    effectLevelValue = EFFECT_LEVEL_START;
+
+    // сбросим стиль эффекта
+    if (currentEffect.effectName !== 'none') {
+      imgUploadPreview.classList.remove(currentEffect.effectClassName);
+    }
+
+    // применим текущий эффект к картинке
+    var target = evt.target.closest('.effects__radio');
+    if (target.value !== 'none') {
+      for (var effect in Effects) {
+        if (target.value === Effects[effect].effectName) {
+          effectLevelDepthValue = EFFECT_LEVEL_START * (Effects[effect].effectValueMax - Effects[effect].effectValueMin);
+          currentEffect = {
+            effectName: Effects[effect].effectName,
+            effectClassName: Effects[effect].effectClassName,
+            effectFilterStr: Effects[effect].effectFilterName + '(' + (Effects[effect].effectValueMin + effectLevelDepthValue) + Effects[effect].effectUnit + ')',
+          };
+        }
+      }
+      effectLevelSlider.classList.remove('hidden');
+    } else {
+      currentEffect = {
+        effectName: Effects['none'].effectName,
+        effectClassName: Effects['none'].effectClassName,
+        effectFilterStr: ''
+      };
+      effectLevelSlider.classList.add('hidden');
+    }
+    imgUploadPreview.classList.add(currentEffect.effectClassName);
+    imgUploadPreview.style.filter = currentEffect.effectFilterStr;
+    imgUploadPreview.style.WebkitFilter = currentEffect.effectFilterStr;
+
+    effectLevelValueElement.setAttribute('value', EFFECT_LEVEL_START * 100);
   });
 
   // проверка хеш-тегов...

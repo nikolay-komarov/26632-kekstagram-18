@@ -6,7 +6,6 @@
   var COMMENT_LENGTH_MAX = 140;
   var EFFECT_LEVEL_START = 1;
 
-
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
   var imgUploadOverlay = document.querySelector('.img-upload__overlay');
@@ -60,6 +59,7 @@
     }
   };
 
+  var imgUploadForm = document.querySelector('.img-upload__form');
   var imgUploadPreview = imgUploadOverlay.querySelector('.img-upload__preview').querySelector('img');
 
   var effectLevelSlider = imgUploadOverlay.querySelector('.img-upload__effect-level'); // слайдер
@@ -117,14 +117,33 @@
   // закрытие формы редактирования изображения
   document.addEventListener('keydown', function (evt) {
     if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
+      resetImgUploadOverlay();
       imgUploadOverlay.classList.add('hidden');
-      uploadFile.value = '';
     }
   });
   imgUploadOverlayButtonClose.addEventListener('click', function () {
+    resetImgUploadOverlay();
     imgUploadOverlay.classList.add('hidden');
-    uploadFile.value = '';
   });
+
+  var resetImgUploadOverlay = function () {
+    imgUploadForm.reset();
+
+    // вернем слайдер
+    effectLevelSlider.classList.remove('hidden'); // скроем ползунок
+
+    // сбросим стиль эффекта
+    if (currentEffect.effectName !== 'none') {
+      imgUploadPreview.classList.remove(currentEffect.effectClassName);
+      imgUploadPreview.style.filter = '';
+    }
+    // выберем первый элемент (без эффекта) списка эффектов
+    effectsRadio[0].checked = true;
+    currentEffect = {
+      effectName: 'none',
+      effectClassName: 'none'
+    };
+  };
 
   // перемещение ползунка на эффектах
   var startXCoord = 0;
@@ -199,6 +218,7 @@
     // сбросим стиль эффекта
     if (currentEffect.effectName !== 'none') {
       imgUploadPreview.classList.remove(currentEffect.effectClassName);
+      imgUploadPreview.style.filter = '';
     }
 
     // применим текущий эффект к картинке
@@ -248,7 +268,8 @@
     textHashtags.setCustomValidity('');
   });
 
-  imgUploadOverlaySabmit.addEventListener('click', function () {
+  imgUploadOverlaySabmit.addEventListener('click', function (evt) {
+    evt.preventDefault();
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть
@@ -292,5 +313,78 @@
         textDescription.setCustomValidity('');
       }
     }
+
+    window.upload(new FormData(imgUploadForm), function () {
+      resetImgUploadOverlay();
+      imgUploadOverlay.classList.add('hidden');
+
+      var main = document.querySelector('main');
+      var fragment = document.createDocumentFragment();
+      var template = document.querySelector('#success').content;
+      var successElementFragment = template.cloneNode(true);
+      fragment.appendChild(successElementFragment);
+      main.appendChild(fragment);
+
+      var successElement = main.querySelector('.success');
+      var successElementButton = successElement.querySelector('.success__button');
+
+      var onSuccessElementPressEsc = function (event) {
+        if (event.keyCode === window.util.ESC_KEYCODE) {
+          removeSuccessElement();
+        }
+      };
+
+      successElement.addEventListener('click', function () {
+        removeSuccessElement();
+      });
+
+      document.addEventListener('keydown', onSuccessElementPressEsc);
+
+      successElementButton.addEventListener('click', function () {
+        removeSuccessElement();
+      });
+
+      var removeSuccessElement = function () {
+        main.removeChild(successElement);
+        document.removeEventListener('keydown', onSuccessElementPressEsc);
+      };
+    }, function (message) {
+      resetImgUploadOverlay();
+      imgUploadOverlay.classList.add('hidden');
+
+      var main = document.querySelector('main');
+      var fragment = document.createDocumentFragment();
+      var template = document.querySelector('#error').content;
+      var errorElementFragment = template.cloneNode(true);
+      errorElementFragment.querySelector('.error__title').textContent = message;
+      fragment.appendChild(errorElementFragment);
+      main.appendChild(fragment);
+
+      var errorElement = main.querySelector('.error');
+      var errorElementButtons = errorElement.querySelectorAll('.error__button');
+
+      var onErrorElementPressEsc = function (event) {
+        if (event.keyCode === window.util.ESC_KEYCODE) {
+          removeErrorElement();
+        }
+      };
+
+      errorElement.addEventListener('click', function () {
+        removeErrorElement();
+      });
+
+      document.addEventListener('keydown', onErrorElementPressEsc);
+
+      for (var i = 0; i < errorElementButtons.length; i++) {
+        errorElementButtons[i].addEventListener('click', function () {
+          removeErrorElement();
+        });
+      }
+
+      var removeErrorElement = function () {
+        main.removeChild(errorElement);
+        document.removeEventListener('keydown', onErrorElementPressEsc);
+      };
+    });
   });
 })();

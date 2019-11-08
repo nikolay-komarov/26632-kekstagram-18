@@ -14,7 +14,7 @@
           onSuccess(xhr.response);
           break;
         default:
-          errorMsg = 'Произошла ошибка соединения';
+          errorMsg = 'Произошла ошибка отправки файла';
       }
 
       if (errorMsg) {

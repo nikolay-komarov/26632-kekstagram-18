@@ -5,6 +5,7 @@
   var HASH_QUANTITY_MAX = 5;
   var COMMENT_LENGTH_MAX = 140;
   var EFFECT_LEVEL_START = 1;
+  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -61,6 +62,7 @@
 
   var imgUploadForm = document.querySelector('.img-upload__form');
   var imgUploadPreview = imgUploadOverlay.querySelector('.img-upload__preview').querySelector('img');
+  var effectsPreviewPicture = document.querySelectorAll('.effects__preview');
 
   var effectLevelSlider = imgUploadOverlay.querySelector('.img-upload__effect-level'); // слайдер
   var effectLevelSliderLine = effectLevelSlider.querySelector('.effect-level__line'); // линия перемещания ползунка
@@ -98,32 +100,60 @@
   var textDescription = imgUploadOverlay.querySelector('.text__description');
   var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
+  // закинем загружаемый файл в превьюшки эффектов
+  var renderPreviewImgEffect = function (imageDataURL) {
+    for (var i = 0; i < effectsPreviewPicture.length; i++) {
+      effectsPreviewPicture[i].style.backgroundImage = 'url("' + imageDataURL + '")';
+    }
+  };
+
   // после выбора файла (событие change) показываем форму редактирования изображения
   uploadFile.addEventListener('change', function () {
-    imgUploadOverlay.classList.remove('hidden');
+    // проверим, что выбранный файл - картинка
+    var file = uploadFile.files[0];
+    var fileName = file.name.toLowerCase();
 
-    effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
-    effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
+    var matches = FILE_TYPES.some(function (it) {
+      return fileName.endsWith(it);
+    });
 
-    // выберем первый элемент (без эффекта) списка эффектов
-    effectsRadio[0].checked = true;
-    currentEffect = {
-      effectName: 'none',
-      effectClassName: 'none'
-    };
-    effectLevelSlider.classList.add('hidden');
+    if (file) {
+      if (matches) {
+        var reader = new FileReader();
+
+        reader.addEventListener('load', function () {
+          imgUploadPreview.src = reader.result;
+          renderPreviewImgEffect(imgUploadPreview.src);
+
+          imgUploadOverlay.classList.remove('hidden');
+
+          effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
+          effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
+
+          // выберем первый элемент (без эффекта) списка эффектов
+          effectsRadio[0].checked = true;
+          currentEffect = {
+            effectName: 'none',
+            effectClassName: 'none'
+          };
+          effectLevelSlider.classList.add('hidden');
+        });
+
+        reader.readAsDataURL(file);
+      } else {
+        onErrorUpload('Не верный формат файла');
+      }
+    }
   });
 
   // закрытие формы редактирования изображения
   document.addEventListener('keydown', function (evt) {
     if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
       resetImgUploadOverlay();
-      imgUploadOverlay.classList.add('hidden');
     }
   });
   imgUploadOverlayButtonClose.addEventListener('click', function () {
     resetImgUploadOverlay();
-    imgUploadOverlay.classList.add('hidden');
   });
 
   var resetImgUploadOverlay = function () {
@@ -143,6 +173,8 @@
       effectName: 'none',
       effectClassName: 'none'
     };
+
+    imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
   };
 
   // перемещение ползунка на эффектах
@@ -268,11 +300,11 @@
     textHashtags.setCustomValidity('');
   });
 
+  var main = document.querySelector('main');
+
   var onSuccessUpload = function () {
     resetImgUploadOverlay();
-    imgUploadOverlay.classList.add('hidden');
 
-    var main = document.querySelector('main');
     var fragment = document.createDocumentFragment();
     var template = document.querySelector('#success').content;
     var successElementFragment = template.cloneNode(true);
@@ -306,9 +338,7 @@
 
   var onErrorUpload = function (message) {
     resetImgUploadOverlay();
-    imgUploadOverlay.classList.add('hidden');
 
-    var main = document.querySelector('main');
     var fragment = document.createDocumentFragment();
     var template = document.querySelector('#error').content;
     var errorElementFragment = template.cloneNode(true);

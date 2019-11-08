@@ -5,7 +5,7 @@
   var HASH_QUANTITY_MAX = 5;
   var COMMENT_LENGTH_MAX = 140;
   var EFFECT_LEVEL_START = 1;
-
+  var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -60,7 +60,9 @@
     }
   };
 
+  var imgUploadForm = document.querySelector('.img-upload__form');
   var imgUploadPreview = imgUploadOverlay.querySelector('.img-upload__preview').querySelector('img');
+  var effectsPreviewPicture = document.querySelectorAll('.effects__preview');
 
   var effectLevelSlider = imgUploadOverlay.querySelector('.img-upload__effect-level'); // слайдер
   var effectLevelSliderLine = effectLevelSlider.querySelector('.effect-level__line'); // линия перемещания ползунка
@@ -98,33 +100,82 @@
   var textDescription = imgUploadOverlay.querySelector('.text__description');
   var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
+  // закинем загружаемый файл в превьюшки эффектов
+  var renderPreviewImgEffect = function (imageDataURL) {
+    for (var i = 0; i < effectsPreviewPicture.length; i++) {
+      effectsPreviewPicture[i].style.backgroundImage = 'url("' + imageDataURL + '")';
+    }
+  };
+
   // после выбора файла (событие change) показываем форму редактирования изображения
   uploadFile.addEventListener('change', function () {
-    imgUploadOverlay.classList.remove('hidden');
+    // проверим, что выбранный файл - картинка
+    var file = uploadFile.files[0];
+    var fileName = file.name.toLowerCase();
 
-    effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
-    effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
+    var matches = FILE_TYPES.some(function (it) {
+      return fileName.endsWith(it);
+    });
 
+    if (file) {
+      if (matches) {
+        var reader = new FileReader();
+
+        reader.addEventListener('load', function () {
+          imgUploadPreview.src = reader.result;
+          renderPreviewImgEffect(imgUploadPreview.src);
+
+          imgUploadOverlay.classList.remove('hidden');
+
+          effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
+          effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
+
+          // выберем первый элемент (без эффекта) списка эффектов
+          effectsRadio[0].checked = true;
+          currentEffect = {
+            effectName: 'none',
+            effectClassName: 'none'
+          };
+          effectLevelSlider.classList.add('hidden');
+        });
+
+        reader.readAsDataURL(file);
+      } else {
+        onErrorUpload('Не верный формат файла');
+      }
+    }
+  });
+
+  // закрытие формы редактирования изображения
+  document.addEventListener('keydown', function (evt) {
+    if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
+      resetImgUploadOverlay();
+    }
+  });
+  imgUploadOverlayButtonClose.addEventListener('click', function () {
+    resetImgUploadOverlay();
+  });
+
+  var resetImgUploadOverlay = function () {
+    imgUploadForm.reset();
+
+    // вернем слайдер
+    effectLevelSlider.classList.remove('hidden'); // скроем ползунок
+
+    // сбросим стиль эффекта
+    if (currentEffect.effectName !== 'none') {
+      imgUploadPreview.classList.remove(currentEffect.effectClassName);
+      imgUploadPreview.style.filter = '';
+    }
     // выберем первый элемент (без эффекта) списка эффектов
     effectsRadio[0].checked = true;
     currentEffect = {
       effectName: 'none',
       effectClassName: 'none'
     };
-    effectLevelSlider.classList.add('hidden');
-  });
 
-  // закрытие формы редактирования изображения
-  document.addEventListener('keydown', function (evt) {
-    if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
-      imgUploadOverlay.classList.add('hidden');
-      uploadFile.value = '';
-    }
-  });
-  imgUploadOverlayButtonClose.addEventListener('click', function () {
-    imgUploadOverlay.classList.add('hidden');
-    uploadFile.value = '';
-  });
+    imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
+  };
 
   // перемещение ползунка на эффектах
   var startXCoord = 0;
@@ -199,6 +250,7 @@
     // сбросим стиль эффекта
     if (currentEffect.effectName !== 'none') {
       imgUploadPreview.classList.remove(currentEffect.effectClassName);
+      imgUploadPreview.style.filter = '';
     }
 
     // применим текущий эффект к картинке
@@ -248,6 +300,79 @@
     textHashtags.setCustomValidity('');
   });
 
+  var main = document.querySelector('main');
+
+  var onSuccessUpload = function () {
+    resetImgUploadOverlay();
+
+    var fragment = document.createDocumentFragment();
+    var template = document.querySelector('#success').content;
+    var successElementFragment = template.cloneNode(true);
+    fragment.appendChild(successElementFragment);
+    main.appendChild(fragment);
+
+    var successElement = main.querySelector('.success');
+    var successElementButton = successElement.querySelector('.success__button');
+
+    var onSuccessElementPressEsc = function (evtUpload) {
+      if (evtUpload.keyCode === window.util.ESC_KEYCODE) {
+        removeSuccessElement();
+      }
+    };
+
+    successElement.addEventListener('click', function () {
+      removeSuccessElement();
+    });
+
+    document.addEventListener('keydown', onSuccessElementPressEsc);
+
+    successElementButton.addEventListener('click', function () {
+      removeSuccessElement();
+    });
+
+    var removeSuccessElement = function () {
+      successElement.remove();
+      document.removeEventListener('keydown', onSuccessElementPressEsc);
+    };
+  };
+
+  var onErrorUpload = function (message) {
+    resetImgUploadOverlay();
+
+    var fragment = document.createDocumentFragment();
+    var template = document.querySelector('#error').content;
+    var errorElementFragment = template.cloneNode(true);
+    errorElementFragment.querySelector('.error__title').textContent = message;
+    fragment.appendChild(errorElementFragment);
+    main.appendChild(fragment);
+
+    var errorElement = main.querySelector('.error');
+    var errorElementButtons = errorElement.querySelectorAll('.error__button');
+
+    var onErrorElementPressEsc = function (evtUpload) {
+      if (evtUpload.keyCode === window.util.ESC_KEYCODE) {
+        removeErrorElement();
+      }
+    };
+
+    errorElement.addEventListener('click', function () {
+      removeErrorElement();
+    });
+
+    document.addEventListener('keydown', onErrorElementPressEsc);
+
+    for (var i = 0; i < errorElementButtons.length; i++) {
+      errorElementButtons[i].addEventListener('click', function () {
+        removeErrorElement();
+      });
+    }
+
+    var removeErrorElement = function () {
+      errorElement.remove();
+      document.removeEventListener('keydown', onErrorElementPressEsc);
+    };
+  };
+
   imgUploadOverlaySabmit.addEventListener('click', function () {
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
@@ -292,5 +417,10 @@
         textDescription.setCustomValidity('');
       }
     }
+  });
+
+  imgUploadForm.addEventListener('submit', function (evt) {
+    evt.preventDefault();
+    window.upload(new FormData(imgUploadForm), onSuccessUpload, onErrorUpload);
   });
 })();

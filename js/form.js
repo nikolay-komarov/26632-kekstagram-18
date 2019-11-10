@@ -64,6 +64,14 @@
   var imgUploadPreview = imgUploadOverlay.querySelector('.img-upload__preview').querySelector('img');
   var effectsPreviewPicture = document.querySelectorAll('.effects__preview');
 
+  var scaleControlSmaller = document.querySelector('.scale__control--smaller');
+  var scaleControlInputValue = document.querySelector('.scale__control--value');
+  var SCALE_VALUE_DEFAULT = 100;
+  var SCALE_VALUE_MAX = 100;
+  var SCALE_VALUE_MIN = 25;
+  var scaleControlValue = SCALE_VALUE_DEFAULT;
+  var scaleControlBigger = document.querySelector('.scale__control--bigger');
+
   var effectLevelSlider = imgUploadOverlay.querySelector('.img-upload__effect-level'); // слайдер
   var effectLevelSliderLine = effectLevelSlider.querySelector('.effect-level__line'); // линия перемещания ползунка
   var effectLevelPin = effectLevelSlider.querySelector('.effect-level__pin'); // pin
@@ -97,7 +105,9 @@
   };
 
   var textHashtags = imgUploadOverlay.querySelector('.text__hashtags');
+  var textHashtagDefaultBorderStyle = textHashtags.style.border;
   var textDescription = imgUploadOverlay.querySelector('.text__description');
+  var textDescriptionDefaultBorderStyle = textDescription.style.border;
   var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
 
   // закинем загружаемый файл в превьюшки эффектов
@@ -123,6 +133,16 @@
 
         reader.addEventListener('load', function () {
           imgUploadPreview.src = reader.result;
+          imgUploadPreview.style.overflow = 'hidden';
+          imgUploadPreview.style.objectFit = 'contain';
+          imgUploadPreview.style.width = 'auto';
+          imgUploadPreview.style.maxWidth = '100%';
+          imgUploadPreview.style.height = '100%';
+
+          scaleControlInputValue.value = SCALE_VALUE_DEFAULT + '%';
+          scaleControlValue = SCALE_VALUE_DEFAULT;
+          imgUploadPreview.style.transform = 'scale(' + (SCALE_VALUE_DEFAULT / 100) + ')';
+
           renderPreviewImgEffect(imgUploadPreview.src);
 
           imgUploadOverlay.classList.remove('hidden');
@@ -136,6 +156,9 @@
             effectName: 'none',
             effectClassName: 'none'
           };
+          effectLevelValue = 100;
+          effectLevelValueElement.setAttribute('value', effectLevelValue);
+          effectLevelDepthValue = 1;
           effectLevelSlider.classList.add('hidden');
         });
 
@@ -160,7 +183,7 @@
     imgUploadForm.reset();
 
     // вернем слайдер
-    effectLevelSlider.classList.remove('hidden'); // скроем ползунок
+    effectLevelSlider.classList.remove('hidden');
 
     // сбросим стиль эффекта
     if (currentEffect.effectName !== 'none') {
@@ -176,6 +199,25 @@
 
     imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
   };
+
+  // изменение масштаба
+  scaleControlSmaller.addEventListener('click', function () {
+    if (scaleControlValue > SCALE_VALUE_MIN) {
+      scaleControlValue = scaleControlValue - 25;
+      scaleControlInputValue.value = scaleControlValue + '%';
+      scaleControlInputValue.setAttribute('value', scaleControlValue + '%');
+      imgUploadPreview.style.transform = 'scale(' + (scaleControlValue / 100) + ')';
+    }
+  });
+
+  scaleControlBigger.addEventListener('click', function () {
+    if (scaleControlValue < SCALE_VALUE_MAX) {
+      scaleControlValue = scaleControlValue + 25;
+      scaleControlInputValue.value = scaleControlValue + '%';
+      scaleControlInputValue.setAttribute('value', scaleControlValue + '%');
+      imgUploadPreview.style.transform = 'scale(' + (scaleControlValue / 100) + ')';
+    }
+  });
 
   // перемещение ползунка на эффектах
   var startXCoord = 0;
@@ -224,6 +266,7 @@
       effectLevelValue = 0;
     }
     effectLevelValueElement.setAttribute('value', effectLevelValue);
+    effectLevelValueElement.value = effectLevelValue;
 
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
@@ -280,6 +323,7 @@
     imgUploadPreview.style.WebkitFilter = currentEffect.effectFilterStr;
 
     effectLevelValueElement.setAttribute('value', EFFECT_LEVEL_START * 100);
+    effectLevelValueElement.value = effectLevelValue;
   });
 
   // проверка хеш-тегов...
@@ -298,6 +342,12 @@
 
   textHashtags.addEventListener('input', function () {
     textHashtags.setCustomValidity('');
+    textHashtags.style.border = textHashtagDefaultBorderStyle;
+  });
+
+  textDescription.addEventListener('input', function () {
+    textDescription.setCustomValidity('');
+    textDescription.style.border = textDescriptionDefaultBorderStyle;
   });
 
   var main = document.querySelector('main');
@@ -396,16 +446,22 @@
 
       if (hashtagsArray.length > HASH_QUANTITY_MAX) {
         textHashtags.setCustomValidity('Должно быть не более 5 хеш-тегов');
+        textHashtags.style.border = '2px solid red';
       } else if (!isHashSimbol) {
         textHashtags.setCustomValidity('Хеш-тег должен начинаться с символа #');
+        textHashtags.style.border = '2px solid red';
       } else if (!isOnlyHashSimbol) {
         textHashtags.setCustomValidity('Хеш-тег не может состоять только из одной решетки');
+        textHashtags.style.border = '2px solid red';
       } else if (!isOverMaxSimbols) {
         textHashtags.setCustomValidity('Максимальная длина одного хэш-тега не может быть более 20 символов, включая решётку');
+        textHashtags.style.border = '2px solid red';
       } else if (hasDoubles(hashtagsArray)) {
         textHashtags.setCustomValidity('Один и тот же хэш-тег не может быть использован дважды');
+        textHashtags.style.border = '2px solid red';
       } else {
         textHashtags.setCustomValidity('');
+        textHashtags.style.border = textHashtagDefaultBorderStyle;
       }
     }
 
@@ -413,8 +469,10 @@
     if (textDescription.value !== '') {
       if (textDescription.value.length > COMMENT_LENGTH_MAX) {
         textDescription.setCustomValidity('Длина комментария не может составлять больше 140 символов');
+        textDescription.style.border = '2px solid red';
       } else {
         textDescription.setCustomValidity('');
+        textDescription.style.border = textDescriptionDefaultBorderStyle;
       }
     }
   });

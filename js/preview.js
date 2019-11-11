@@ -7,7 +7,7 @@
   var bigPicture = document.querySelector('.big-picture');
   var bigPictureCommentsCount;
 
-  var newSocialCommentsElements = Array(bigPictureCommentsCount);
+  var newSocialCommentsElements = [];
   var socialElementFragment = document.createDocumentFragment();
   var socialCommentsList = bigPicture.querySelector('.social__comments');
   var socialCommentsElements = bigPicture.querySelectorAll('.social__comment');
@@ -16,6 +16,17 @@
   var commentsLoader = bigPicture.querySelector('.comments-loader');
 
   var currentCommentsCount;
+
+  var onСommentsLoaderClick = function (card) {
+    currentCommentsCount = currentCommentsCount + COMMENTS_IN_LIST_MAX;
+    if (currentCommentsCount <= bigPictureCommentsCount) {
+      renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, currentCommentsCount, card);
+    } else {
+      renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, bigPictureCommentsCount, card);
+      commentsLoader.classList.add('visually-hidden');
+      socialCommentCount.classList.add('visually-hidden');
+    }
+  };
 
   var renderComments = function (fromElement, toElement, card) {
     for (var i = fromElement; i < toElement; i++) {
@@ -53,30 +64,24 @@
     commentsLoader.classList.remove('visually-hidden');
     socialCommentCount.classList.remove('visually-hidden');
 
+    renderComments(0, COMMENTS_IN_LIST_MAX, card);
     if (bigPictureCommentsCount <= COMMENTS_IN_LIST_MAX) {
       commentsLoader.classList.add('visually-hidden');
       socialCommentCount.classList.add('visually-hidden');
-      renderComments(0, COMMENTS_IN_LIST_MAX, card);
     } else {
-      renderComments(0, COMMENTS_IN_LIST_MAX, card);
       currentCommentsCount = currentCommentsCount + COMMENTS_IN_LIST_MAX;
     }
 
-    commentsLoader.addEventListener('click', function () {
-      currentCommentsCount = currentCommentsCount + COMMENTS_IN_LIST_MAX;
-      if (currentCommentsCount <= bigPictureCommentsCount) {
-        renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, currentCommentsCount, card);
-      } else {
-        renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, bigPictureCommentsCount, card);
-        commentsLoader.classList.add('visually-hidden');
-        socialCommentCount.classList.add('visually-hidden');
-      }
-    });
+    // eslint-disable-next-line no-invalid-this
+    var onСommentsLoaderClickToEventListener = onСommentsLoaderClick.bind(this, card);
 
-    // обработчики для закрытия окна big-picture
+    commentsLoader.addEventListener('click', onСommentsLoaderClickToEventListener);
+
+    // закрытие окна big-picture
     var closeBigPicture = function () {
       bigPicture.classList.add('hidden');
       body.classList.remove('modal-open');
+      commentsLoader.removeEventListener('click', onСommentsLoaderClickToEventListener);
     };
 
     var bigPictureCloseButton = bigPicture.querySelector('#picture-cancel');

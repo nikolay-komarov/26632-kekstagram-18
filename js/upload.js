@@ -10,7 +10,7 @@
     xhr.addEventListener('load', function () {
       var errorMsg;
       switch (xhr.status) {
-        case 200:
+        case window.util.CodeXHR.SUCCESS:
           onSuccess(xhr.response);
           break;
         default:

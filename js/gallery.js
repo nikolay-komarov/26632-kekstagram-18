@@ -33,11 +33,9 @@
     return cards;
   };
   var getUniqCards = function (cards) {
-    var uniqCards = [];
-    uniqCards = cards.filter(function (elem, index, self) {
+    return cards.filter(function (elem, index, self) {
       return index === self.indexOf(elem);
     });
-    return uniqCards;
   };
   var sortToPopular = function (cards) {
     return cards.slice();
@@ -46,11 +44,9 @@
     return getUniqCards(shuffleCards(cards.slice())).slice(0, MAX_CARD_SORT_RANDOM);
   };
   var sortToDiscussed = function (cards) {
-    var tempArr = [];
-    tempArr = cards.slice().sort(function (a, b) {
-      return b.likes - a.likes;
+    return cards.slice().sort(function (a, b) {
+      return b.comments.length - a.comments.length;
     });
-    return tempArr;
   };
   var sortMethodsMap = {
     'filter-popular': sortToPopular,

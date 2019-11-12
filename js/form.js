@@ -6,6 +6,9 @@
   var COMMENT_LENGTH_MAX = 140;
   var EFFECT_LEVEL_START = 1;
   var FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
+  var SCALE_VALUE_DEFAULT = 100;
+  var SCALE_VALUE_MAX = 100;
+  var SCALE_VALUE_MIN = 25;
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -66,9 +69,6 @@
 
   var scaleControlSmaller = document.querySelector('.scale__control--smaller');
   var scaleControlInputValue = document.querySelector('.scale__control--value');
-  var SCALE_VALUE_DEFAULT = 100;
-  var SCALE_VALUE_MAX = 100;
-  var SCALE_VALUE_MIN = 25;
   var scaleControlValue = SCALE_VALUE_DEFAULT;
   var scaleControlBigger = document.querySelector('.scale__control--bigger');
 

@@ -17,7 +17,7 @@
 
   var currentCommentsCount;
 
-  var onСommentsLoaderClick = function (card) {
+  var onCommentsLoaderClick = function (card) {
     currentCommentsCount = currentCommentsCount + COMMENTS_IN_LIST_MAX;
     if (currentCommentsCount <= bigPictureCommentsCount) {
       renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, currentCommentsCount, card);
@@ -73,15 +73,15 @@
     }
 
     // eslint-disable-next-line no-invalid-this
-    var onСommentsLoaderClickToEventListener = onСommentsLoaderClick.bind(this, card);
+    onCommentsLoaderClick = onCommentsLoaderClick.bind(this, card);
 
-    commentsLoader.addEventListener('click', onСommentsLoaderClickToEventListener);
+    commentsLoader.addEventListener('click', onCommentsLoaderClick);
 
     // закрытие окна big-picture
     var closeBigPicture = function () {
       bigPicture.classList.add('hidden');
       body.classList.remove('modal-open');
-      commentsLoader.removeEventListener('click', onСommentsLoaderClickToEventListener);
+      commentsLoader.removeEventListener('click', onCommentsLoaderClick);
     };
 
     var bigPictureCloseButton = bigPicture.querySelector('#picture-cancel');

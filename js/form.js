@@ -19,7 +19,7 @@
   var Effects = {
     'none': {
       effectName: 'none',
-      effectClassName: 'none'
+      effectClassName: ''
     },
     'chrome': {
       effectName: 'chrome',
@@ -65,7 +65,7 @@
 
   var imgUploadForm = document.querySelector('.img-upload__form');
   var imgUploadPreview = imgUploadOverlay.querySelector('.img-upload__preview').querySelector('img');
-  var effectsPreviewPicture = document.querySelectorAll('.effects__preview');
+  var previewPictureEffects = document.querySelectorAll('.effects__preview');
 
   var scaleControlSmaller = document.querySelector('.scale__control--smaller');
   var scaleControlInputValue = document.querySelector('.scale__control--value');
@@ -87,20 +87,27 @@
 
   var getCurrentEffectName = function () {
     var checkedElement;
-    for (var i = 0; i < effectsRadio.length; i++) {
-      if (effectsRadio[i].checked) {
-        checkedElement = effectsRadio[i];
+    effectsRadioButtons.forEach(function (it) {
+      if (it.checked) {
+        checkedElement = it;
       }
-    }
+    });
     return checkedElement.value;
   };
 
+  var claearEffect = function () {
+    if (currentEffect.effectName !== 'none') {
+      imgUploadPreview.removeAttribute('class');
+      imgUploadPreview.style.filter = '';
+    }
+  };
+
   var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
-  var effectsRadio = effectList.querySelectorAll('.effects__radio'); // список радио-кнопок для эффектов
+  var effectsRadioButtons = effectList.querySelectorAll('.effects__radio'); // список радио-кнопок для эффектов
   // начальное значение для наименования текущего эффекта
   var currentEffect = {
     effectName: 'none',
-    effectClassName: 'none',
+    effectClassName: '',
     effectFilterStr: ''
   };
 
@@ -108,13 +115,13 @@
   var textHashtagDefaultBorderStyle = textHashtags.style.border;
   var textDescription = imgUploadOverlay.querySelector('.text__description');
   var textDescriptionDefaultBorderStyle = textDescription.style.border;
-  var imgUploadOverlaySabmit = imgUploadOverlay.querySelector('#upload-submit');
+  var imgUploadOverlaySabmitButtons = imgUploadOverlay.querySelector('#upload-submit');
 
   // закинем загружаемый файл в превьюшки эффектов
   var renderPreviewImgEffect = function (imageDataURL) {
-    for (var i = 0; i < effectsPreviewPicture.length; i++) {
-      effectsPreviewPicture[i].style.backgroundImage = 'url("' + imageDataURL + '")';
-    }
+    previewPictureEffects.forEach(function (it) {
+      it.style.backgroundImage = 'url("' + imageDataURL + '")';
+    });
   };
 
   // после выбора файла (событие change) показываем форму редактирования изображения
@@ -151,10 +158,10 @@
           effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
 
           // выберем первый элемент (без эффекта) списка эффектов
-          effectsRadio[0].checked = true;
+          effectsRadioButtons[0].checked = true;
           currentEffect = {
             effectName: 'none',
-            effectClassName: 'none'
+            effectClassName: ''
           };
           effectLevelValue = 100;
           effectLevelValueElement.setAttribute('value', effectLevelValue);
@@ -186,15 +193,13 @@
     effectLevelSlider.classList.remove('hidden');
 
     // сбросим стиль эффекта
-    if (currentEffect.effectName !== 'none') {
-      imgUploadPreview.classList.remove(currentEffect.effectClassName);
-      imgUploadPreview.style.filter = '';
-    }
+    claearEffect();
+
     // выберем первый элемент (без эффекта) списка эффектов
-    effectsRadio[0].checked = true;
+    effectsRadioButtons[0].checked = true;
     currentEffect = {
       effectName: 'none',
-      effectClassName: 'none'
+      effectClassName: ''
     };
 
     imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
@@ -226,7 +231,7 @@
   var onMouseMove = function (moveEvt) {
     moveEvt.preventDefault();
 
-    if (isPinMove === true) {
+    if (isPinMove) {
       var shiftX = startXCoord - moveEvt.clientX;
       startXCoord = moveEvt.clientX;
 
@@ -291,10 +296,7 @@
     effectLevelValue = EFFECT_LEVEL_START;
 
     // сбросим стиль эффекта
-    if (currentEffect.effectName !== 'none') {
-      imgUploadPreview.classList.remove(currentEffect.effectClassName);
-      imgUploadPreview.style.filter = '';
-    }
+    claearEffect();
 
     // применим текущий эффект к картинке
     var target = evt.target.closest('.effects__radio');
@@ -310,6 +312,9 @@
         }
       }
       effectLevelSlider.classList.remove('hidden');
+      imgUploadPreview.classList.add(currentEffect.effectClassName);
+      imgUploadPreview.style.filter = currentEffect.effectFilterStr;
+      imgUploadPreview.style.WebkitFilter = currentEffect.effectFilterStr;
     } else {
       currentEffect = {
         effectName: Effects['none'].effectName,
@@ -318,9 +323,6 @@
       };
       effectLevelSlider.classList.add('hidden');
     }
-    imgUploadPreview.classList.add(currentEffect.effectClassName);
-    imgUploadPreview.style.filter = currentEffect.effectFilterStr;
-    imgUploadPreview.style.WebkitFilter = currentEffect.effectFilterStr;
 
     effectLevelValueElement.setAttribute('value', EFFECT_LEVEL_START * 100);
     effectLevelValueElement.value = effectLevelValue;
@@ -411,11 +413,11 @@
 
     document.addEventListener('keydown', onErrorElementPressEsc);
 
-    for (var i = 0; i < errorElementButtons.length; i++) {
-      errorElementButtons[i].addEventListener('click', function () {
+    errorElementButtons.forEach(function (it) {
+      it.addEventListener('click', function () {
         removeErrorElement();
       });
-    }
+    });
 
     var removeErrorElement = function () {
       errorElement.remove();
@@ -423,7 +425,7 @@
     };
   };
 
-  imgUploadOverlaySabmit.addEventListener('click', function () {
+  imgUploadOverlaySabmitButtons.addEventListener('click', function () {
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть

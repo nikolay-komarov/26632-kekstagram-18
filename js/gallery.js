@@ -3,15 +3,33 @@
 (function () {
   var MAX_CARD_SORT_RANDOM = 10;
 
+  var imgFilters = document.querySelector('.img-filters');
+  var imgFiltersForm = document.querySelector('.img-filters__form');
+  var imgFiltersButtons = document.querySelectorAll('.img-filters__button');
+  var newCards = [];
+  var cardsInList;
+
   var renderPictures = function (cards) {
     var elementsList = document.querySelector('.pictures');
     var fragment = document.createDocumentFragment();
     var template = document.querySelector('#picture').content.querySelector('a');
-    for (var i = 0; i < cards.length; i++) {
-      fragment.appendChild(window.picture.createElement(template, cards[i]));
-    }
-
+    cards.forEach(function (it) {
+      fragment.appendChild(window.picture.createElement(template, it));
+    });
     elementsList.appendChild(fragment);
+
+    cardsInList = elementsList.querySelectorAll('.picture'); // заберем созданные элементы карточек
+
+    cardsInList.forEach(function (it, idx) {
+      it.addEventListener('keydown', function (evt) {
+        if (evt.keyCode === window.util.ENTER_KEYCODE) {
+          window.preview.createBigPicture(cards[idx]);
+        }
+      });
+      it.addEventListener('click', function () {
+        window.preview.createBigPicture(cards[idx]);
+      });
+    });
   };
 
   var clearPictures = function () {
@@ -48,18 +66,12 @@
       return b.comments.length - a.comments.length;
     });
   };
+
   var sortMethodsMap = {
     'filter-popular': sortToPopular,
     'filter-random': sortToRandom,
     'filter-discussed': sortToDiscussed
   };
-
-  var imgFilters = document.querySelector('.img-filters');
-  var imgFiltersForm = document.querySelector('.img-filters__form');
-  var imgFiltersButtons = document.querySelectorAll('.img-filters__button');
-  var newCards = [];
-  var cardList;
-  var cardsInList;
 
   var updateCardsList = window.debounce(function (evt, cards) {
     newCards = [];
@@ -71,9 +83,6 @@
     target.classList.add('img-filters__button--active');
     newCards = sortMethodsMap[target.id](cards);
     renderPictures(newCards);
-
-    cardList = document.querySelector('.pictures');
-    cardsInList = cardList.querySelectorAll('.picture'); // заберем созданные элементы карточек
   });
 
   // загрузка данных с сервера
@@ -83,34 +92,10 @@
     // первая отрисовка карточек по загруженным данным
     newCards = imgCards.slice();
     renderPictures(newCards);
-    cardList = document.querySelector('.pictures');
-    cardsInList = cardList.querySelectorAll('.picture'); // заберем созданные элементы карточек
 
-    // обработка события при клику на кноках выбора фильтра
+    // обработка события при клику на кнопках выбора фильтра
     imgFiltersForm.addEventListener('click', function (evt) {
       updateCardsList(evt, imgCards);
-    });
-
-    // обработчик событий click по картинке и enter на выбранной картинке (номер карточки совпадает с номером элемента в созданной разметке)
-    cardList.addEventListener('keydown', function (evt) {
-      var target = evt.target.closest('.picture');
-      if (evt.keyCode === window.util.ENTER_KEYCODE) {
-        for (var j = 0; j < cardsInList.length; j++) {
-          if (target === cardsInList[j]) {
-            window.preview.createBigPicture(newCards[j]);
-          }
-        }
-      }
-    });
-    cardList.addEventListener('click', function (evt) {
-      var target = evt.target;
-      if (target.className === 'picture__img') {
-        for (var k = 0; k < cardsInList.length; k++) {
-          if (target.closest('.picture') === cardsInList[k]) {
-            window.preview.createBigPicture(newCards[k]);
-          }
-        }
-      }
     });
   };
 

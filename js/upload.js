@@ -8,18 +8,15 @@
     xhr.responseType = 'json';
 
     xhr.addEventListener('load', function () {
-      var errorMsg;
-      switch (xhr.status) {
-        case window.util.CodeXHR.SUCCESS:
-          onSuccess(xhr.response);
-          break;
-        default:
-          errorMsg = 'Произошла ошибка отправки файла';
+      if (xhr.status === window.util.CodeXHR.SUCCESS) {
+        onSuccess(xhr.response);
+      } else {
+        onError('Произошла ошибка отправки файла');
       }
+    });
 
-      if (errorMsg) {
-        onError(errorMsg);
-      }
+    xhr.addEventListener('error', function () {
+      onError('Произошла ошибка отправки файла');
     });
 
     xhr.open('POST', URL);

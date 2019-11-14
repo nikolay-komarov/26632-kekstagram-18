@@ -2,6 +2,7 @@
 
 (function () {
   var COMMENTS_IN_LIST_MAX = 5;
+  var COMMENTS_IN_LIST_ZERO = 0;
 
   var body = document.body;
   var bigPicture = document.querySelector('.big-picture');
@@ -27,10 +28,11 @@
       currentCommentsCount = currentCommentsCount + COMMENTS_IN_LIST_MAX;
       if (currentCommentsCount < bigPictureCommentsCount) {
         renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, currentCommentsCount, card);
+        socialCommentCount.firstChild.data = currentCommentsCount + ' из ';
       } else {
         renderComments(currentCommentsCount - COMMENTS_IN_LIST_MAX, bigPictureCommentsCount, card);
         commentsLoader.classList.add('visually-hidden');
-        socialCommentCount.classList.add('visually-hidden');
+        socialCommentCount.firstChild.data = bigPictureCommentsCount + ' из ';
         commentsLoader.removeEventListener('click', onCommentsLoaderClick);
       }
     }
@@ -80,18 +82,21 @@
       if (bigPictureCommentsCount <= COMMENTS_IN_LIST_MAX) {
         renderComments(0, bigPictureCommentsCount);
         commentsLoader.classList.add('visually-hidden');
-        socialCommentCount.classList.add('visually-hidden');
+        socialCommentCount.classList.remove('visually-hidden');
+        socialCommentCount.firstChild.data = bigPictureCommentsCount + ' из ';
       } else {
         currentCommentsCount = currentCommentsCount + COMMENTS_IN_LIST_MAX;
         renderComments(0, currentCommentsCount);
         commentsLoader.classList.remove('visually-hidden');
         socialCommentCount.classList.remove('visually-hidden');
+        socialCommentCount.firstChild.data = currentCommentsCount + ' из ';
         commentsLoader.addEventListener('click', onCommentsLoaderClick);
       }
     }
 
     // закрытие окна big-picture
     var closeBigPicture = function () {
+      socialCommentCount.firstChild.data = COMMENTS_IN_LIST_ZERO + ' из ';
       bigPicture.classList.add('hidden');
       body.classList.remove('modal-open');
     };

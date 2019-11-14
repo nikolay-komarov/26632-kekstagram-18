@@ -21,11 +21,6 @@
     cardsInList = elementsList.querySelectorAll('.picture'); // заберем созданные элементы карточек
 
     cardsInList.forEach(function (it, idx) {
-      it.addEventListener('keydown', function (evt) {
-        if (evt.keyCode === window.util.ENTER_KEYCODE) {
-          window.preview.createBigPicture(cards[idx]);
-        }
-      });
       it.addEventListener('click', function () {
         window.preview.createBigPicture(cards[idx]);
       });

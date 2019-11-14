@@ -10,7 +10,7 @@
     xhr.addEventListener('load', function () {
       var errorMsg;
       switch (xhr.status) {
-        case 200:
+        case window.util.CodeXHR.SUCCESS:
           onSuccess(xhr.response);
           break;
         default:
@@ -21,15 +21,6 @@
         onError(errorMsg);
       }
     });
-
-    // xhr.addEventListener('error', function () {
-    //   onError('Произошла ошибка соединения');
-    // });
-    // xhr.addEventListener('timeout', function () {
-    //   onError('Запрос не успел выполниться за ' + xhr.timeout + 'мс');
-    // });
-
-    // xhr.timeout = 10000; // 10s
 
     xhr.open('POST', URL);
     xhr.send(data);

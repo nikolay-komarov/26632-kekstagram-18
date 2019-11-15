@@ -161,6 +161,9 @@
 
           imgUploadOverlay.classList.remove('hidden');
 
+          // закрытие формы редактирования изображения
+          document.addEventListener('keydown', onImgUploadOverlayPressEsc);
+
           effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
           effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
 
@@ -183,13 +186,6 @@
     }
   });
 
-  // закрытие формы редактирования изображения
-  document.addEventListener('keydown', onImgUploadOverlayPressEsc);
-  // function (evt) {
-  //   if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
-  //     resetImgUploadOverlay();
-  //   }
-  // });
   imgUploadOverlayButtonClose.addEventListener('click', function () {
     resetImgUploadOverlay();
   });
@@ -213,11 +209,6 @@
     imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
 
     document.removeEventListener('keydown', onImgUploadOverlayPressEsc);
-    // function (evt) {
-    //   if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
-    //     resetImgUploadOverlay();
-    //   }
-    // });
   };
 
   // изменение масштаба

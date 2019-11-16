@@ -26,6 +26,14 @@
     }
   };
 
+  var mainElement = document.querySelector('main');
+
+  var fragment;
+  var template;
+  var elementFragment;
+  var element;
+  var elementButtons;
+
   var getRandomInt = function (min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -33,40 +41,43 @@
   };
 
   var renderMessageElement = function (message, loadResult) {
-    var main = document.querySelector('main');
-
-    var fragment = document.createDocumentFragment();
-    var template = document.querySelector(loadResult.template).content;
-    var elementFragment = template.cloneNode(true);
+    fragment = document.createDocumentFragment();
+    template = document.querySelector(loadResult.template).content;
+    elementFragment = template.cloneNode(true);
     elementFragment.querySelector(loadResult.title).textContent = message;
     fragment.appendChild(elementFragment);
-    main.appendChild(fragment);
+    mainElement.appendChild(fragment);
 
-    var element = main.querySelector(loadResult.element);
-    var elementButtons = element.querySelectorAll('.error__button');
+    element = mainElement.querySelector(loadResult.element);
+    elementButtons = element.querySelectorAll(loadResult.elementButtons);
 
-    var onElementPressEsc = function (evtUpload) {
-      if (evtUpload.keyCode === window.util.ESC_KEYCODE) {
-        removeElement();
-      }
-    };
-
-    element.addEventListener('click', function () {
-      removeElement();
-    });
-
-    document.addEventListener('keydown', onElementPressEsc);
+    element.addEventListener('click', onMessageElementClik);
+    document.addEventListener('keydown', onMessageElementPressEsc);
 
     elementButtons.forEach(function (it) {
-      it.addEventListener('click', function () {
-        removeElement();
-      });
+      it.addEventListener('click', onMessageElementButtonClick);
     });
+  };
 
-    var removeElement = function () {
-      element.remove();
-      document.removeEventListener('keydown', onElementPressEsc);
-    };
+  var onMessageElementPressEsc = function (evtUpload) {
+    if (evtUpload.keyCode === window.util.ESC_KEYCODE) {
+      removeMessageElement();
+    }
+  };
+  var onMessageElementClik = function () {
+    removeMessageElement();
+  };
+  var onMessageElementButtonClick = function () {
+    removeMessageElement();
+  };
+
+  var removeMessageElement = function () {
+    element.remove();
+    element.removeEventListener('click', onMessageElementClik);
+    document.removeEventListener('keydown', onMessageElementPressEsc);
+    elementButtons.forEach(function (it) {
+      it.removeEventListener('click', onMessageElementButtonClick);
+    });
   };
 
   window.util = {

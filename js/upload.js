@@ -8,28 +8,16 @@
     xhr.responseType = 'json';
 
     xhr.addEventListener('load', function () {
-      var errorMsg;
-      switch (xhr.status) {
-        case 200:
-          onSuccess(xhr.response);
-          break;
-        default:
-          errorMsg = 'Произошла ошибка отправки файла';
-      }
-
-      if (errorMsg) {
-        onError(errorMsg);
+      if (xhr.status === window.util.CodeXHR.SUCCESS) {
+        onSuccess(xhr.response);
+      } else {
+        onError('Произошла ошибка отправки файла');
       }
     });
 
-    // xhr.addEventListener('error', function () {
-    //   onError('Произошла ошибка соединения');
-    // });
-    // xhr.addEventListener('timeout', function () {
-    //   onError('Запрос не успел выполниться за ' + xhr.timeout + 'мс');
-    // });
-
-    // xhr.timeout = 10000; // 10s
+    xhr.addEventListener('error', function () {
+      onError('Произошла ошибка отправки файла');
+    });
 
     xhr.open('POST', URL);
     xhr.send(data);

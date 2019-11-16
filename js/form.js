@@ -111,7 +111,6 @@
   var textDescription = imgUploadOverlay.querySelector('.text__description');
   var textDescriptionDefaultBorderStyle = textDescription.style.border;
   var imgUploadOverlaySabmitButtons = imgUploadOverlay.querySelector('#upload-submit');
-  imgUploadOverlaySabmitButtons.type = 'button';
 
   // закинем загружаемый файл в превьюшки эффектов
   var renderPreviewImgEffect = function (imageDataURL) {
@@ -256,7 +255,7 @@
     // расчет значения глубины эффекта
     effectLevelValue = (effectLevelSliderLineWidth > 0) ? effectLevelLineWidth / effectLevelSliderLineWidth * 100 : 0;
 
-    effectLevelValueElement.value = effectLevelValue;
+    effectLevelValueElement.value = Math.round(effectLevelValue);
 
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
@@ -324,9 +323,8 @@
     textDescription.style.border = textDescriptionDefaultBorderStyle;
   };
 
-  var onImgUploadOverlaySabmitButtons = function (evt) {
-    var isTextHashtagValiduty = false;
-    var isTextDescriptionValidity = false;
+  // eslint-disable-next-line no-unused-vars
+  var onImgUploadOverlaySabmitButtonClick = function (evt) {
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть
@@ -364,11 +362,8 @@
         textHashtags.style.border = '2px solid red';
       } else {
         textHashtags.setCustomValidity('');
-        isTextHashtagValiduty = true;
         textHashtags.style.border = textHashtagDefaultBorderStyle;
       }
-    } else {
-      isTextHashtagValiduty = true;
     }
 
     // проверка длины комментария
@@ -378,17 +373,16 @@
         textDescription.style.border = '2px solid red';
       } else {
         textDescription.setCustomValidity('');
-        isTextDescriptionValidity = true;
         textDescription.style.border = textDescriptionDefaultBorderStyle;
       }
-    } else {
-      isTextDescriptionValidity = true;
     }
 
-    if (isTextHashtagValiduty && isTextDescriptionValidity) {
-      evt.preventDefault();
-      window.upload(new FormData(imgUploadForm), onSuccessUpload, onErrorUpload);
-    }
+    imgUploadForm.addEventListener('submit', onImgUploadFormSubmit);
+  };
+
+  var onImgUploadFormSubmit = function (evt) {
+    evt.preventDefault();
+    window.upload(new FormData(imgUploadForm), onSuccessUpload, onErrorUpload);
   };
 
   var imgUploadOverlayAddEventListeners = function () {
@@ -399,7 +393,7 @@
     effectList.addEventListener('change', onEffectListChange);
     textHashtags.addEventListener('input', onTextHashtagsInput);
     textDescription.addEventListener('input', onTextDescriptionInput);
-    imgUploadOverlaySabmitButtons.addEventListener('click', onImgUploadOverlaySabmitButtons);
+    imgUploadOverlaySabmitButtons.addEventListener('click', onImgUploadOverlaySabmitButtonClick);
   };
 
   var imgUploadOverlayRemoveEventListeners = function () {
@@ -410,7 +404,8 @@
     effectList.removeEventListener('change', onEffectListChange);
     textHashtags.removeEventListener('input', onTextHashtagsInput);
     textDescription.removeEventListener('input', onTextDescriptionInput);
-    imgUploadOverlaySabmitButtons.removeEventListener('click', onImgUploadOverlaySabmitButtons);
+    imgUploadOverlaySabmitButtons.removeEventListener('click', onImgUploadOverlaySabmitButtonClick);
+    imgUploadForm.removeEventListener('submit', onImgUploadFormSubmit);
   };
 
   var onSuccessUpload = function () {
@@ -425,6 +420,12 @@
 
   var resetImgUploadOverlay = function () {
     imgUploadForm.reset();
+
+    // сбросим красную рамку и setCustomValidity
+    textHashtags.style.border = textHashtagDefaultBorderStyle;
+    textHashtags.setCustomValidity('');
+    textDescription.style.border = textDescriptionDefaultBorderStyle;
+    textDescription.setCustomValidity('');
 
     // вернем слайдер
     effectLevelSlider.classList.remove('hidden');

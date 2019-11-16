@@ -9,16 +9,17 @@
   var newCards = [];
   var cardsInList;
 
-  var renderPictures = function (cards) {
-    var elementsList = document.querySelector('.pictures');
-    var fragment = document.createDocumentFragment();
-    var template = document.querySelector('#picture').content.querySelector('a');
-    cards.forEach(function (it) {
-      fragment.appendChild(window.picture.createElement(template, it));
-    });
-    elementsList.appendChild(fragment);
+  var pictureList = document.querySelector('.pictures');
+  var pictureFragment = document.createDocumentFragment();
+  var pictureTemplate = document.querySelector('#picture').content.querySelector('a');
 
-    cardsInList = elementsList.querySelectorAll('.picture'); // заберем созданные элементы карточек
+  var renderPictures = function (cards) {
+    cards.forEach(function (it) {
+      pictureFragment.appendChild(window.picture.createElement(pictureTemplate, it));
+    });
+    pictureList.appendChild(pictureFragment);
+
+    cardsInList = pictureList.querySelectorAll('.picture'); // заберем созданные элементы карточек
 
     cardsInList.forEach(function (it, idx) {
       it.addEventListener('click', function () {
@@ -36,12 +37,12 @@
 
   var shuffleCards = function (cards) {
     var j;
-    var tempArr = [];
+    var temp;
     for (var i = cards.length - 1; i > 0; i--) {
       j = Math.floor(Math.random() * (i + 1));
-      tempArr = cards[j];
+      temp = cards[j];
       cards[j] = cards[i];
-      cards[i] = tempArr;
+      cards[i] = temp;
     }
     return cards;
   };
@@ -95,16 +96,7 @@
   };
 
   var onErrorLoad = function (message) {
-    var main = document.querySelector('main');
-    var fragment = document.createDocumentFragment();
-    var template = document.querySelector('#error').content;
-
-    var errorElement = template.cloneNode(true);
-    errorElement.querySelector('.error__title').textContent = message;
-
-    fragment.appendChild(errorElement);
-
-    main.appendChild(fragment);
+    window.util.renderMessageElement(message, window.util.loadResults['error']);
   };
 
   window.load(onSuccessLoad, onErrorLoad);

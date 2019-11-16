@@ -9,6 +9,7 @@
   var SCALE_VALUE_DEFAULT = 100;
   var SCALE_VALUE_MAX = 100;
   var SCALE_VALUE_MIN = 25;
+  var SCALE_STEP = 25;
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -85,23 +86,6 @@
 
   var effectLevelValueElement = imgUploadOverlay.querySelector('.effect-level__value'); // поле для записи значения эффекта
 
-  var getCurrentEffectName = function () {
-    var checkedElement;
-    effectsRadioButtons.forEach(function (it) {
-      if (it.checked) {
-        checkedElement = it;
-      }
-    });
-    return checkedElement.value;
-  };
-
-  var claearEffect = function () {
-    if (currentEffect.effectName !== 'none') {
-      imgUploadPreview.removeAttribute('class');
-      imgUploadPreview.style.filter = '';
-    }
-  };
-
   var effectList = imgUploadOverlay.querySelector('.effects__list'); // список эффектов
   var effectsRadioButtons = effectList.querySelectorAll('.effects__radio'); // список радио-кнопок для эффектов
   // начальное значение для наименования текущего эффекта
@@ -109,6 +93,17 @@
     effectName: 'none',
     effectClassName: '',
     effectFilterStr: ''
+  };
+
+  var getCurrentEffectName = function () {
+    return (effectList.querySelector('.effects__radio:checked').value);
+  };
+
+  var clearEffect = function () {
+    if (currentEffect.effectName !== 'none') {
+      imgUploadPreview.classList.remove(currentEffect.effectClassName);
+      imgUploadPreview.style.filter = '';
+    }
   };
 
   var textHashtags = imgUploadOverlay.querySelector('.text__hashtags');
@@ -122,6 +117,12 @@
     previewPictureEffects.forEach(function (it) {
       it.style.backgroundImage = 'url("' + imageDataURL + '")';
     });
+  };
+
+  var onImgUploadOverlayPressEsc = function (evt) {
+    if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
+      resetImgUploadOverlay();
+    }
   };
 
   // после выбора файла (событие change) показываем форму редактирования изображения
@@ -154,6 +155,9 @@
 
           imgUploadOverlay.classList.remove('hidden');
 
+          // закрытие формы редактирования изображения
+          document.addEventListener('keydown', onImgUploadOverlayPressEsc);
+
           effectLevelSliderLineWidth = effectLevelSliderLine.offsetWidth; // длина линии эффекта
           effectLevelLineWidth = effectLevelLine.offsetWidth; // длина линии перемещения ползунка
 
@@ -163,10 +167,12 @@
             effectName: 'none',
             effectClassName: ''
           };
-          effectLevelValue = 100;
-          effectLevelValueElement.setAttribute('value', effectLevelValue);
+          effectLevelValue = EFFECT_LEVEL_START * 100;
+          effectLevelValueElement.value = effectLevelValue;
           effectLevelDepthValue = 1;
           effectLevelSlider.classList.add('hidden');
+
+          imgUploadOverlayAddEventListeners(); // добавим обработчики по элементам формы
         });
 
         reader.readAsDataURL(file);
@@ -176,57 +182,42 @@
     }
   });
 
-  // закрытие формы редактирования изображения
-  document.addEventListener('keydown', function (evt) {
-    if ((evt.keyCode === window.util.ESC_KEYCODE) && (document.activeElement !== textHashtags) && (document.activeElement !== textDescription)) {
-      resetImgUploadOverlay();
-    }
-  });
-  imgUploadOverlayButtonClose.addEventListener('click', function () {
+  // обработчик для закрытия окна
+  var onImgUploadOverlayButtonCloseClick = function () {
     resetImgUploadOverlay();
-  });
-
-  var resetImgUploadOverlay = function () {
-    imgUploadForm.reset();
-
-    // вернем слайдер
-    effectLevelSlider.classList.remove('hidden');
-
-    // сбросим стиль эффекта
-    claearEffect();
-
-    // выберем первый элемент (без эффекта) списка эффектов
-    effectsRadioButtons[0].checked = true;
-    currentEffect = {
-      effectName: 'none',
-      effectClassName: ''
-    };
-
-    imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
   };
 
   // изменение масштаба
-  scaleControlSmaller.addEventListener('click', function () {
+  var setScaleStyles = function () {
+    scaleControlInputValue.value = scaleControlValue + '%';
+    imgUploadPreview.style.transform = 'scale(' + (scaleControlValue / 100) + ')';
+  };
+  var onScaleControlSmallerClick = function () {
     if (scaleControlValue > SCALE_VALUE_MIN) {
-      scaleControlValue = scaleControlValue - 25;
-      scaleControlInputValue.value = scaleControlValue + '%';
-      scaleControlInputValue.setAttribute('value', scaleControlValue + '%');
-      imgUploadPreview.style.transform = 'scale(' + (scaleControlValue / 100) + ')';
+      scaleControlValue = scaleControlValue - SCALE_STEP;
+      setScaleStyles();
     }
-  });
-
-  scaleControlBigger.addEventListener('click', function () {
+  };
+  var onScaleControlBiggerClick = function () {
     if (scaleControlValue < SCALE_VALUE_MAX) {
-      scaleControlValue = scaleControlValue + 25;
-      scaleControlInputValue.value = scaleControlValue + '%';
-      scaleControlInputValue.setAttribute('value', scaleControlValue + '%');
-      imgUploadPreview.style.transform = 'scale(' + (scaleControlValue / 100) + ')';
+      scaleControlValue = scaleControlValue + SCALE_STEP;
+      setScaleStyles();
     }
-  });
+  };
 
   // перемещение ползунка на эффектах
   var startXCoord = 0;
   var isPinMove = false;
+
+  var onMouseDown = function (downEvt) {
+    downEvt.preventDefault();
+
+    startXCoord = downEvt.clientX;
+    isPinMove = true;
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
 
   var onMouseMove = function (moveEvt) {
     moveEvt.preventDefault();
@@ -251,13 +242,10 @@
       effectLevelLineWidth = newPinXCood;
 
       // расчет глубины эффекта и применение эффекта
-      for (var effect in Effects) {
-        if (getCurrentEffectName() === Effects[effect].effectName) {
-          effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (Effects[effect].effectValueMax - Effects[effect].effectValueMin);
-          imgUploadPreview.style.filter = Effects[effect].effectFilterName + '(' + Effects[effect].effectValueMin + effectLevelDepthValue + Effects[effect].effectUnit + ')';
-          imgUploadPreview.style.WebkitFilter = Effects[effect].effectFilterName + '(' + (Effects[effect].effectValueMin + effectLevelDepthValue) + Effects[effect].effectUnit + ')';
-        }
-      }
+      var effect = getCurrentEffectName();
+      effectLevelDepthValue = effectLevelLineWidth / effectLevelSliderLineWidth * (Effects[effect].effectValueMax - Effects[effect].effectValueMin);
+      imgUploadPreview.style.filter = Effects[effect].effectFilterName + '(' + Effects[effect].effectValueMin + effectLevelDepthValue + Effects[effect].effectUnit + ')';
+      imgUploadPreview.style.WebkitFilter = Effects[effect].effectFilterName + '(' + (Effects[effect].effectValueMin + effectLevelDepthValue) + Effects[effect].effectUnit + ')';
     }
   };
 
@@ -265,38 +253,24 @@
     upEvt.preventDefault();
 
     // расчет значения глубины эффекта
-    if (effectLevelSliderLineWidth > 0) {
-      effectLevelValue = effectLevelLineWidth / effectLevelSliderLineWidth * 100;
-    } else {
-      effectLevelValue = 0;
-    }
-    effectLevelValueElement.setAttribute('value', effectLevelValue);
-    effectLevelValueElement.value = effectLevelValue;
+    effectLevelValue = (effectLevelSliderLineWidth > 0) ? effectLevelLineWidth / effectLevelSliderLineWidth * 100 : 0;
+
+    effectLevelValueElement.value = Math.round(effectLevelValue);
 
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
     isPinMove = false;
   };
 
-  effectLevelPin.addEventListener('mousedown', function (evt) {
-    evt.preventDefault();
-
-    startXCoord = evt.clientX;
-    isPinMove = true;
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  });
-
   // события при переключении эффекта
-  effectList.addEventListener('change', function (evt) {
+  var onEffectListChange = function (evt) {
     // переставим pin в начальное положение и скинем значения глубины и величины эффекта до стартовых
     effectLevelPin.style.left = EFFECT_LEVEL_START * effectLevelSliderLineWidth + 'px';
     effectLevelLine.style.width = EFFECT_LEVEL_START * effectLevelSliderLineWidth + 'px';
     effectLevelValue = EFFECT_LEVEL_START;
 
     // сбросим стиль эффекта
-    claearEffect();
+    clearEffect();
 
     // применим текущий эффект к картинке
     var target = evt.target.closest('.effects__radio');
@@ -324,108 +298,33 @@
       effectLevelSlider.classList.add('hidden');
     }
 
-    effectLevelValueElement.setAttribute('value', EFFECT_LEVEL_START * 100);
-    effectLevelValueElement.value = effectLevelValue;
-  });
+    effectLevelValueElement.value = EFFECT_LEVEL_START * 100;
+  };
 
   // проверка хеш-тегов...
   // проверка на дубли в массиве
   var hasDoubles = function (checkedArray) {
-    var countDbl = 0;
     for (var i = 0; i < checkedArray.length - 1; i++) {
       for (var j = i + 1; j < checkedArray.length; j++) {
         if (checkedArray[i] === checkedArray[j]) {
-          countDbl++;
+          return true;
         }
       }
     }
-    return countDbl > 0;
+    return false;
   };
 
-  textHashtags.addEventListener('input', function () {
+  var onTextHashtagsInput = function () {
     textHashtags.setCustomValidity('');
     textHashtags.style.border = textHashtagDefaultBorderStyle;
-  });
-
-  textDescription.addEventListener('input', function () {
+  };
+  var onTextDescriptionInput = function () {
     textDescription.setCustomValidity('');
     textDescription.style.border = textDescriptionDefaultBorderStyle;
-  });
-
-  var main = document.querySelector('main');
-
-  var onSuccessUpload = function () {
-    resetImgUploadOverlay();
-
-    var fragment = document.createDocumentFragment();
-    var template = document.querySelector('#success').content;
-    var successElementFragment = template.cloneNode(true);
-    fragment.appendChild(successElementFragment);
-    main.appendChild(fragment);
-
-    var successElement = main.querySelector('.success');
-    var successElementButton = successElement.querySelector('.success__button');
-
-    var onSuccessElementPressEsc = function (evtUpload) {
-      if (evtUpload.keyCode === window.util.ESC_KEYCODE) {
-        removeSuccessElement();
-      }
-    };
-
-    successElement.addEventListener('click', function () {
-      removeSuccessElement();
-    });
-
-    document.addEventListener('keydown', onSuccessElementPressEsc);
-
-    successElementButton.addEventListener('click', function () {
-      removeSuccessElement();
-    });
-
-    var removeSuccessElement = function () {
-      successElement.remove();
-      document.removeEventListener('keydown', onSuccessElementPressEsc);
-    };
   };
 
-  var onErrorUpload = function (message) {
-    resetImgUploadOverlay();
-
-    var fragment = document.createDocumentFragment();
-    var template = document.querySelector('#error').content;
-    var errorElementFragment = template.cloneNode(true);
-    errorElementFragment.querySelector('.error__title').textContent = message;
-    fragment.appendChild(errorElementFragment);
-    main.appendChild(fragment);
-
-    var errorElement = main.querySelector('.error');
-    var errorElementButtons = errorElement.querySelectorAll('.error__button');
-
-    var onErrorElementPressEsc = function (evtUpload) {
-      if (evtUpload.keyCode === window.util.ESC_KEYCODE) {
-        removeErrorElement();
-      }
-    };
-
-    errorElement.addEventListener('click', function () {
-      removeErrorElement();
-    });
-
-    document.addEventListener('keydown', onErrorElementPressEsc);
-
-    errorElementButtons.forEach(function (it) {
-      it.addEventListener('click', function () {
-        removeErrorElement();
-      });
-    });
-
-    var removeErrorElement = function () {
-      errorElement.remove();
-      document.removeEventListener('keydown', onErrorElementPressEsc);
-    };
-  };
-
-  imgUploadOverlaySabmitButtons.addEventListener('click', function () {
+  // eslint-disable-next-line no-unused-vars
+  var onImgUploadOverlaySabmitButtonClick = function (evt) {
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть
@@ -477,10 +376,73 @@
         textDescription.style.border = textDescriptionDefaultBorderStyle;
       }
     }
-  });
 
-  imgUploadForm.addEventListener('submit', function (evt) {
+    imgUploadForm.addEventListener('submit', onImgUploadFormSubmit);
+  };
+
+  var onImgUploadFormSubmit = function (evt) {
     evt.preventDefault();
     window.upload(new FormData(imgUploadForm), onSuccessUpload, onErrorUpload);
-  });
+  };
+
+  var imgUploadOverlayAddEventListeners = function () {
+    imgUploadOverlayButtonClose.addEventListener('click', onImgUploadOverlayButtonCloseClick);
+    scaleControlSmaller.addEventListener('click', onScaleControlSmallerClick);
+    scaleControlBigger.addEventListener('click', onScaleControlBiggerClick);
+    effectLevelPin.addEventListener('mousedown', onMouseDown);
+    effectList.addEventListener('change', onEffectListChange);
+    textHashtags.addEventListener('input', onTextHashtagsInput);
+    textDescription.addEventListener('input', onTextDescriptionInput);
+    imgUploadOverlaySabmitButtons.addEventListener('click', onImgUploadOverlaySabmitButtonClick);
+  };
+
+  var imgUploadOverlayRemoveEventListeners = function () {
+    imgUploadOverlayButtonClose.removeEventListener('click', onImgUploadOverlayButtonCloseClick);
+    scaleControlSmaller.removeEventListener('click', onScaleControlSmallerClick);
+    scaleControlBigger.removeEventListener('click', onScaleControlBiggerClick);
+    effectLevelPin.removeEventListener('mousedown', onMouseDown);
+    effectList.removeEventListener('change', onEffectListChange);
+    textHashtags.removeEventListener('input', onTextHashtagsInput);
+    textDescription.removeEventListener('input', onTextDescriptionInput);
+    imgUploadOverlaySabmitButtons.removeEventListener('click', onImgUploadOverlaySabmitButtonClick);
+    imgUploadForm.removeEventListener('submit', onImgUploadFormSubmit);
+  };
+
+  var onSuccessUpload = function () {
+    resetImgUploadOverlay();
+    window.util.renderMessageElement('Изображение успешно загружено', window.util.loadResults['success']);
+  };
+
+  var onErrorUpload = function (message) {
+    resetImgUploadOverlay();
+    window.util.renderMessageElement(message, window.util.loadResults['error']);
+  };
+
+  var resetImgUploadOverlay = function () {
+    imgUploadForm.reset();
+
+    // сбросим красную рамку и setCustomValidity
+    textHashtags.style.border = textHashtagDefaultBorderStyle;
+    textHashtags.setCustomValidity('');
+    textDescription.style.border = textDescriptionDefaultBorderStyle;
+    textDescription.setCustomValidity('');
+
+    // вернем слайдер
+    effectLevelSlider.classList.remove('hidden');
+
+    // сбросим стиль эффекта
+    clearEffect();
+
+    // выберем первый элемент (без эффекта) списка эффектов
+    effectsRadioButtons[0].checked = true;
+    currentEffect = {
+      effectName: 'none',
+      effectClassName: ''
+    };
+
+    imgUploadOverlay.classList.add('hidden'); // спрячем окно с фильтрами
+
+    imgUploadOverlayRemoveEventListeners();
+    document.removeEventListener('keydown', onImgUploadOverlayPressEsc);
+  };
 })();

@@ -323,8 +323,7 @@
     textDescription.style.border = textDescriptionDefaultBorderStyle;
   };
 
-  // eslint-disable-next-line no-unused-vars
-  var onImgUploadOverlaySabmitButtonClick = function (evt) {
+  var onImgUploadOverlaySabmitButtonClick = function () {
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть

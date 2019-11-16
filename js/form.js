@@ -9,6 +9,7 @@
   var SCALE_VALUE_DEFAULT = 100;
   var SCALE_VALUE_MAX = 100;
   var SCALE_VALUE_MIN = 25;
+  var SCALE_STEP = 25;
 
   // обеъекты и переменные для работы с загрузкой файла
   var uploadFile = document.querySelector('#upload-file');
@@ -110,6 +111,7 @@
   var textDescription = imgUploadOverlay.querySelector('.text__description');
   var textDescriptionDefaultBorderStyle = textDescription.style.border;
   var imgUploadOverlaySabmitButtons = imgUploadOverlay.querySelector('#upload-submit');
+  imgUploadOverlaySabmitButtons.type = 'button';
 
   // закинем загружаемый файл в превьюшки эффектов
   var renderPreviewImgEffect = function (imageDataURL) {
@@ -146,7 +148,7 @@
           imgUploadPreview.style.maxWidth = '100%';
           imgUploadPreview.style.height = '100%';
 
-          scaleControlInputValue.setAttribute('value', SCALE_VALUE_DEFAULT + '%');
+          scaleControlInputValue.value = SCALE_VALUE_DEFAULT + '%';
           scaleControlValue = SCALE_VALUE_DEFAULT;
           imgUploadPreview.style.transform = 'scale(' + (SCALE_VALUE_DEFAULT / 100) + ')';
 
@@ -166,8 +168,8 @@
             effectName: 'none',
             effectClassName: ''
           };
-          effectLevelValue = 100;
-          effectLevelValueElement.setAttribute('value', effectLevelValue);
+          effectLevelValue = EFFECT_LEVEL_START * 100;
+          effectLevelValueElement.value = effectLevelValue;
           effectLevelDepthValue = 1;
           effectLevelSlider.classList.add('hidden');
 
@@ -188,18 +190,18 @@
 
   // изменение масштаба
   var setScaleStyles = function () {
-    scaleControlInputValue.setAttribute('value', scaleControlValue + '%');
+    scaleControlInputValue.value = scaleControlValue + '%';
     imgUploadPreview.style.transform = 'scale(' + (scaleControlValue / 100) + ')';
   };
   var onScaleControlSmallerClick = function () {
     if (scaleControlValue > SCALE_VALUE_MIN) {
-      scaleControlValue = scaleControlValue - 25;
+      scaleControlValue = scaleControlValue - SCALE_STEP;
       setScaleStyles();
     }
   };
   var onScaleControlBiggerClick = function () {
     if (scaleControlValue < SCALE_VALUE_MAX) {
-      scaleControlValue = scaleControlValue + 25;
+      scaleControlValue = scaleControlValue + SCALE_STEP;
       setScaleStyles();
     }
   };
@@ -254,7 +256,7 @@
     // расчет значения глубины эффекта
     effectLevelValue = (effectLevelSliderLineWidth > 0) ? effectLevelLineWidth / effectLevelSliderLineWidth * 100 : 0;
 
-    effectLevelValueElement.setAttribute('value', effectLevelValue);
+    effectLevelValueElement.value = effectLevelValue;
 
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
@@ -297,7 +299,7 @@
       effectLevelSlider.classList.add('hidden');
     }
 
-    effectLevelValueElement.setAttribute('value', EFFECT_LEVEL_START * 100);
+    effectLevelValueElement.value = EFFECT_LEVEL_START * 100;
   };
 
   // проверка хеш-тегов...
@@ -322,7 +324,9 @@
     textDescription.style.border = textDescriptionDefaultBorderStyle;
   };
 
-  var onImgUploadOverlaySabmitButtons = function () {
+  var onImgUploadOverlaySabmitButtons = function (evt) {
+    var isTextHashtagValiduty = false;
+    var isTextDescriptionValidity = false;
     textHashtags.value = textHashtags.value.trim(); // удалим пробелы с начала и с конца строки
 
     // если хеш-теги есть
@@ -360,8 +364,11 @@
         textHashtags.style.border = '2px solid red';
       } else {
         textHashtags.setCustomValidity('');
+        isTextHashtagValiduty = true;
         textHashtags.style.border = textHashtagDefaultBorderStyle;
       }
+    } else {
+      isTextHashtagValiduty = true;
     }
 
     // проверка длины комментария
@@ -371,14 +378,17 @@
         textDescription.style.border = '2px solid red';
       } else {
         textDescription.setCustomValidity('');
+        isTextDescriptionValidity = true;
         textDescription.style.border = textDescriptionDefaultBorderStyle;
       }
+    } else {
+      isTextDescriptionValidity = true;
     }
-  };
 
-  var onImgUploadFormSubmit = function (evt) {
-    evt.preventDefault();
-    window.upload(new FormData(imgUploadForm), onSuccessUpload, onErrorUpload);
+    if (isTextHashtagValiduty && isTextDescriptionValidity) {
+      evt.preventDefault();
+      window.upload(new FormData(imgUploadForm), onSuccessUpload, onErrorUpload);
+    }
   };
 
   var imgUploadOverlayAddEventListeners = function () {
@@ -390,7 +400,6 @@
     textHashtags.addEventListener('input', onTextHashtagsInput);
     textDescription.addEventListener('input', onTextDescriptionInput);
     imgUploadOverlaySabmitButtons.addEventListener('click', onImgUploadOverlaySabmitButtons);
-    imgUploadForm.addEventListener('submit', onImgUploadFormSubmit);
   };
 
   var imgUploadOverlayRemoveEventListeners = function () {
@@ -402,7 +411,6 @@
     textHashtags.removeEventListener('input', onTextHashtagsInput);
     textDescription.removeEventListener('input', onTextDescriptionInput);
     imgUploadOverlaySabmitButtons.removeEventListener('click', onImgUploadOverlaySabmitButtons);
-    imgUploadForm.removeEventListener('submit', onImgUploadFormSubmit);
   };
 
   var onSuccessUpload = function () {

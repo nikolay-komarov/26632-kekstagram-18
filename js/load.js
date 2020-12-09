@@ -1,7 +1,7 @@
 'use strict';
 
 (function () {
-  var URL = 'https://js.dump.academy/kekstagram/data';
+  var URL = 'https://21.javascript.pages.academy/kekstagram/data';
 
   var XHR_TIMEOUT = 10000; // 10s
 
